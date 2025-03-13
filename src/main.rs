@@ -4,7 +4,7 @@ extern crate rocket;
 mod models;
 mod sensors;
 
-use rocket::{get, post, routes, State};
+use rocket::{get, post, routes, State, response::Redirect};
 use rocket::serde::json::Json;
 use rocket::fs::{NamedFile, FileServer, relative};
 use models::{Device, SensorType};
@@ -20,8 +20,37 @@ use rand::Rng;
 use std::sync::Arc;
 use tokio::sync::Mutex;
 use std::collections::HashMap;
-use chrono::{NaiveDate, Utc}; // Import NaiveDate and Utc
-use rocket::response::content::RawText; // Import RawText
+use chrono::{NaiveDate, Utc};
+use rocket::response::content::RawText;
+
+async fn process_logs(start_date_parsed: Option<NaiveDate>, end_date_parsed: Option<NaiveDate>) -> Vec<String> {
+    let mut filtered_logs = Vec::new();
+    if let Ok(contents) = fs::read_to_string(LOG_FILE) {
+        for line in contents.lines() {
+            if let Some((timestamp, rest)) = line.split_once(" - ") {
+                let date_str = &timestamp[..10];  // Add & here for string slice reference
+                if let Ok(entry_date) = NaiveDate::parse_from_str(date_str, "%Y-%m-%d") {  // date_str is already a &str
+                    let mut include = true;
+                    
+                    if let Some(start) = start_date_parsed {
+                        if entry_date < start {
+                            include = false;
+                        }
+                    }
+                    if let Some(end) = end_date_parsed {
+                        if entry_date > end {
+                            include = false;
+                        }
+                    }
+                    if include {
+                        filtered_logs.push(format!("{} - {}", timestamp, rest));
+                    }
+                }
+            }
+        }
+    }
+    filtered_logs
+}
 
 // Define a struct to track device status.
 #[derive(Debug, Clone)]
@@ -46,11 +75,18 @@ type SharedDevices = Arc<Mutex<Vec<Device>>>;
 
 static LOG_FILE: &str = "rustPing_running.log";
 
-// Serve the dashboard page.
+// Serve the dashboard page.  We NO LONGER need this separate route.
+// #[get("/")]
+// async fn index() -> Option<NamedFile> {
+//     NamedFile::open(Path::new("static/index.html")).await.ok()
+// }
+
+// Redirect / to /static/index.html (this is now optional, but good for clarity)
 #[get("/")]
-async fn index() -> Option<NamedFile> {
-    NamedFile::open(Path::new("static/index.html")).await.ok()
+async fn index() -> Redirect {
+    Redirect::to("/static/index.html")
 }
+
 
 // API to add a device.
 #[post("/add_device", data = "<device>")]
@@ -116,9 +152,10 @@ async fn export_log(
         }
         // Split the line to extract timestamp and device name.
         if let Some((timestamp, rest)) = line.split_once(" - ") {
-            // Extract date portion (first 10 characters)
+            // Extract date portion and create a borrowed string slice
             let date_str = &timestamp[..10];  // Add & here
-            if let Ok(entry_date) = NaiveDate::parse_from_str(date_str, "%Y-%m-%d") {
+            if let Ok(entry_date) = NaiveDate::parse_from_str(date_str, "%Y-%m-%d") {  // date_str is already &str
+
                 let mut include = true;
 
                 // Apply date filters if present
@@ -273,8 +310,11 @@ async fn main() {
     let devices: SharedDevices = Arc::new(Mutex::new(Vec::new()));
     let rocket_instance = rocket::build()
         .manage(devices.clone())
-        .mount("/", routes![index, add_device, get_devices, export_log, logs_json, failed_logs])
-        .mount("/static", FileServer::from(relative!("static")));
+        // Mount FileServer with rank 2.  This is the crucial part.
+        .mount("/static", FileServer::from(relative!("static")).rank(2))
+        // Mount other routes.  The redirect has a higher rank (default is 0), so it takes precedence.
+        .mount("/", routes![index, add_device, get_devices, export_log, logs_json, failed_logs]);
+
 
     add_devices_from_file("devices.json", devices.clone()).await;
 
