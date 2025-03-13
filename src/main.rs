@@ -1,3 +1,4 @@
+// src/main.rs
 extern crate rocket;
 
 mod models;
@@ -8,7 +9,7 @@ use rocket::serde::json::Json;
 use rocket::fs::{NamedFile, FileServer, relative};
 use models::{Device, SensorType};
 use log::{info, error};
-use sensors::{monitor_ping, monitor_http, PingStatus};
+use sensors::{monitor_ping, monitor_http};
 use std::fs::{self, OpenOptions};
 use std::io::{Read, Write};
 use serde_json::{self, json};
@@ -18,11 +19,28 @@ use tokio::time::{sleep, Duration};
 use rand::Rng;
 use std::sync::Arc;
 use tokio::sync::Mutex;
-use chrono::{Utc, NaiveDate};
-use rocket::response::content::RawText;
 use std::collections::HashMap;
+use chrono::{NaiveDate, Utc}; // Import NaiveDate and Utc
+use rocket::response::content::RawText; // Import RawText
 
-type DeviceStatusMap = Arc<Mutex<HashMap<String, PingStatus>>>;
+// Define a struct to track device status.
+#[derive(Debug, Clone)]
+struct DeviceStatus {
+    failed_attempts: u32,
+    last_status: bool,
+}
+
+impl DeviceStatus {
+    fn new() -> Self {
+        DeviceStatus {
+            failed_attempts: 0,
+            last_status: true, // Assume initially up
+        }
+    }
+}
+
+// Use the new DeviceStatus struct in the type alias.
+type DeviceStatusMap = Arc<Mutex<HashMap<String, DeviceStatus>>>;
 
 type SharedDevices = Arc<Mutex<Vec<Device>>>;
 
@@ -39,7 +57,7 @@ async fn index() -> Option<NamedFile> {
 async fn add_device(device: Json<Device>, devices: &State<SharedDevices>) -> &'static str {
     let mut dev = device.into_inner();
     if dev.sensors.contains(&SensorType::Ping) {
-        let status = monitor_ping(dev.ip).await;
+        let status = monitor_ping(&dev.ip).await;  // Borrow dev.ip
         dev.ping_status = Some(status);
     }
     let mut devices_locked = devices.lock().await;
@@ -55,11 +73,6 @@ async fn get_devices(devices: &State<SharedDevices>) -> Json<Vec<Device>> {
 }
 
 /// Export logs filtered by (optional) date range and device names.
-/// Query parameters:
-/// - devices: comma separated device names (exact match, case-insensitive). Leave empty for all.
-/// - start_date: date string in "YYYY-MM-DD" format
-/// - end_date: date string in "YYYY-MM-DD" format
-/// - format: "csv" or "txt" (default is txt)
 #[get("/export_log?<devices>&<start_date>&<end_date>&<format>")]
 async fn export_log(
     devices: Option<&str>,
@@ -95,8 +108,6 @@ async fn export_log(
     });
 
     // Process each log line.
-    // Log lines expected in format:
-    // "YYYY-MM-DD HH:MM:SS - DeviceName: Ping: OK, HTTP: OK, Bandwidth: 123.45 Mbps"
     for line in lines {
         // Skip header lines starting with "//" unless needed for CSV header.
         if line.starts_with("//") {
@@ -105,10 +116,12 @@ async fn export_log(
         }
         // Split the line to extract timestamp and device name.
         if let Some((timestamp, rest)) = line.split_once(" - ") {
-            // Extract date portion (first 10 characters).
-            let date_str = &timestamp[..10];
+            // Extract date portion (first 10 characters)
+            let date_str = &timestamp[..10];  // Add & here
             if let Ok(entry_date) = NaiveDate::parse_from_str(date_str, "%Y-%m-%d") {
                 let mut include = true;
+
+                // Apply date filters if present
                 if let Some(start) = start_date_parsed {
                     if entry_date < start {
                         include = false;
@@ -119,11 +132,10 @@ async fn export_log(
                         include = false;
                     }
                 }
-                // Extract device name from remainder (before the first colon).
+                // Extract device name.
                 if let Some((device_name, _)) = rest.split_once(":") {
                     let device_name_trim = device_name.trim().to_lowercase();
                     if let Some(ref filters) = device_filters {
-                        // Only include if one of the filters exactly matches the device name.
                         let mut found = false;
                         for f in filters {
                             if device_name_trim == *f {
@@ -151,7 +163,6 @@ async fn export_log(
                 if line.starts_with("//") {
                     continue;
                 }
-                // Expected format: "YYYY-MM-DD HH:MM:SS - DeviceName: Ping: OK, HTTP: OK, Bandwidth: 123.45 Mbps"
                 if let Some((timestamp, rest)) = line.split_once(" - ") {
                     if let Some((device_part, statuses)) = rest.split_once(": ") {
                         let cols: Vec<&str> = statuses.split(", ").collect();
@@ -176,10 +187,6 @@ async fn export_log(
 }
 
 /// New endpoint to expose logs as JSON.
-/// It reads the log file, skips header lines, and parses each log entry.
-///
-/// Expected log entry format:
-/// "YYYY-MM-DD HH:MM:SS - DeviceName: Ping: OK, HTTP: OK, Bandwidth: 123.45 Mbps"
 #[get("/logs_json")]
 async fn logs_json() -> Json<serde_json::Value> {
     let mut file_content = String::new();
@@ -197,7 +204,6 @@ async fn logs_json() -> Json<serde_json::Value> {
         if line.starts_with("//") || line.trim().is_empty() {
             continue;
         }
-        // Expects format: "YYYY-MM-DD HH:MM:SS - DeviceName: Ping: OK, HTTP: OK, Bandwidth: 123.45 Mbps"
         if let Some((timestamp, rest)) = line.split_once(" - ") {
             let parts: Vec<&str> = rest.splitn(2, ": ").collect();
             if parts.len() < 2 { continue; }
@@ -248,15 +254,20 @@ async fn add_devices_from_file(file_path: &str, devices: SharedDevices) {
     devices_locked.append(&mut file_devices);
 }
 
-/// # New route for failed logs.
+/// New route for failed logs.
 #[get("/failed_logs")]
 async fn failed_logs() -> Option<NamedFile> {
     NamedFile::open(Path::new("static/failed_logs.html")).await.ok()
 }
 
-#[rocket::main]
+use env_logger;
+
+#[tokio::main]
 async fn main() {
-    env_logger::init();
+    // Initialize logger with debug level
+    env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("debug"))
+        .init();
+    
     info!("Starting RustPing Network Device Monitor...");
 
     let devices: SharedDevices = Arc::new(Mutex::new(Vec::new()));
@@ -267,10 +278,10 @@ async fn main() {
 
     add_devices_from_file("devices.json", devices.clone()).await;
 
-    // Track last logged date so that a new header is inserted once per day.
+    // Track last logged date.
     let mut last_log_date = String::new();
 
-    // Spawn a background task to update device status and log the status every 5 seconds.
+    // Spawn a background task.
     let devices_clone = devices.clone();
     let device_status_map: DeviceStatusMap = Arc::new(Mutex::new(HashMap::new()));
     let status_map_clone = device_status_map.clone();
@@ -286,7 +297,7 @@ async fn main() {
                 let (ip, name, sensors, http_path) = {
                     let locked = devices_clone.lock().await;
                     if let Some(dev) = locked.get(i) {
-                        (dev.ip, dev.name.clone(), dev.sensors.clone(), dev.http_path.clone())
+                        (dev.ip.clone(), dev.name.clone(), dev.sensors.clone(), dev.http_path.clone()) // Clone ip
                     } else {
                         continue;
                     }
@@ -296,24 +307,20 @@ async fn main() {
                 if sensors.contains(&SensorType::Ping) {
                     // Perform multiple ping attempts
                     let mut success_count = 0;
-                    let mut failure_count = 0;
-                    for _ in 0..5 {  // Try 5 times
-                        if monitor_ping(ip).await {
+                    for _ in 0..5 {
+                        if monitor_ping(&ip).await { // Borrow &ip
                             success_count += 1;
-                        } else {
-                            failure_count += 1;
                         }
-                        sleep(Duration::from_millis(500)).await;  // 500ms between pings
+                        sleep(Duration::from_millis(500)).await;
                     }
-                    
-                    // Consider it a success if at least 3 out of 5 pings succeeded
+
                     let current_status = success_count >= 3;
                     ping_status = Some(current_status);
 
                     // Update the status tracking
                     let mut status_map = status_map_clone.lock().await;
-                    let device_status = status_map.entry(name.clone()).or_insert_with(PingStatus::new);
-                    
+                    let device_status = status_map.entry(name.clone()).or_insert_with(DeviceStatus::new);
+
                     if !current_status {
                         device_status.failed_attempts += 1;
                     } else {
@@ -322,8 +329,7 @@ async fn main() {
                     device_status.last_status = current_status;
                 }
 
-                // Rest of the monitoring code remains the same
-                let bandwidth_usage = if sensors.contains(&SensorType::Http) || sensors.contains(&SensorType::Https) {
+                let bandwidth_usage = if sensors.contains(&SensorType::Http) {
                     Some(rand::thread_rng().gen_range(10.0..1000.0))
                 } else {
                     None
@@ -356,7 +362,7 @@ async fn main() {
 
             // Open the log file for appending.
             if let Ok(mut file) = OpenOptions::new().append(true).create(true).open(LOG_FILE) {
-                // If no header written for today, write one.
+                // Write header if needed
                 if last_log_date != today {
                     let header = format!("// {}\n", today);
                     if let Err(e) = file.write_all(header.as_bytes()) {
@@ -366,8 +372,8 @@ async fn main() {
                 }
 
                 let locked = devices_clone.lock().await;
-                let status_map = status_map_clone.lock().await;
-                
+                let _status_map = status_map_clone.lock().await;  //Add _
+
                 for dev in locked.iter() {
                     // Format the log entry
                     let log_entry = format!(
@@ -384,7 +390,7 @@ async fn main() {
                         error!("Failed to write log entry: {}", e);
                     }
                 }
-                // Ensure the file is flushed
+                // Flush
                 if let Err(e) = file.flush() {
                     error!("Failed to flush log file: {}", e);
                 }
