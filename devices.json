@@ -1,0 +1,98 @@
+[
+  {
+    "name": "Device 1",
+    "ip": "8.8.8.8",
+    "sensors": ["Ping", "Http"],
+    "http_path": "http://google.com"
+  },
+  {
+    "name": "Device 2",
+    "ip": "8.8.4.4",
+    "sensors": ["Ping"]
+  },
+  {
+    "name": "Device 3",
+    "ip": "1.1.1.1",
+    "sensors": ["Ping", "Https"],
+    "http_path": "http://google.com"
+  },
+  {
+    "name": "Device 4",
+    "ip": "1.0.0.1",
+    "sensors": ["Http"],
+    "http_path": "http://google.com"
+  },
+  {
+    "name": "Device 5",
+    "ip": "192.168.1.1",
+    "sensors": ["Ping", "Http", "Https"],
+    "http_path": "http://google.com"
+  },
+  {
+    "name": "Device 6",
+    "ip": "192.168.1.2",
+    "sensors": ["Ping"]
+  },
+  {
+    "name": "Device 7",
+    "ip": "10.0.0.1",
+    "sensors": ["Ping", "Http"]
+  },
+  {
+    "name": "Device 8",
+    "ip": "10.0.0.2",
+    "sensors": ["Ping"]
+  },
+  {
+    "name": "Device 9",
+    "ip": "172.16.0.1",
+    "sensors": ["Ping", "Https"],
+    "http_path": "http://google.com"
+  },
+  {
+    "name": "Device 10",
+    "ip": "172.16.0.2",
+    "sensors": ["Http", "Https"],
+    "http_path": "http://google.com"
+  },
+  {
+    "name": "Device 11",
+    "ip": "8.8.8.9",
+    "sensors": ["Ping"]
+  },
+  {
+    "name": "Device 12",
+    "ip": "8.8.4.9",
+    "sensors": ["Ping", "Http"],
+    "http_path": "http://google.com"
+  },
+  {
+    "name": "Device 13",
+    "ip": "1.1.1.2",
+    "sensors": ["Ping"]
+  },
+  {
+    "name": "Device 14",
+    "ip": "1.0.0.2",
+    "sensors": ["Http"],
+    "http_path": "http://google.com"
+  },
+  {
+    "name": "Device 15",
+    "ip": "192.168.100.1",
+    "sensors": ["Ping", "Http", "Https"],
+    "http_path": "http://google.com"
+  },
+  {
+    "name": "Device 16",
+    "ip": "192.168.100.2",
+    "sensors": ["Ping", "Http"],
+    "http_path": "http://google.com"
+  },
+  {
+    "name": "Device 17",
+    "ip": "192.168.100.3",
+    "sensors": ["Ping", "Https"],
+    "http_path": "http://google.com"
+  }
+]

@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RustPing | Failed Logs</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
+        integrity="sha512-z3gLpd7yknf1YoNbCzqRKc4qyor8gaKU1qmn+CShxbuBusANI9QpRohGBreCFkKxLhei6S9CQXFEbbKuqLg0DA=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="icon" href="favicon.png" type="image/x-icon">
+</head>
+<body>
+    <div class="header">
+        <h1>RustPing - Failed Logs</h1>
+        <div class="filter-container">
+            <a href="/static/index.html" class="nav-link">Dashboard</a>
+            <a href="/static/log_view.html" class="nav-link">Live Logs</a> <!-- Removed 'active' class -->
+            <!-- Dark mode toggle -->
+            <div class="dark-mode-toggle" onclick="toggleDarkMode()">
+                <i class="fas fa-moon"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="dashboard">
+        <div class="filters">
+            <input type="date" id="startDate" placeholder="Start Date">
+            <input type="date" id="endDate" placeholder="End Date">
+            <input type="text" id="deviceFilter" placeholder="Filter by device name">
+            <button onclick="applyFilters()">Apply Filters</button>
+        </div>
+        
+        <div class="table-container">
+            <table id="failedLogsTable">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Time</th>
+                        <th>Device</th>
+                        <th>Ping Status</th>
+                        <th>HTTP Status</th>
+                        <th>Bandwidth</th>
+                    </tr>
+                </thead>
+                <tbody id="failedLogsBody">
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="footer">
+    © Copyright 2025 . All rights reserved. Developed by KARTHIK LAL.
+  </div>
+
+    <script src="script.js"></script>
+    <script>
+        // Add this to your existing script.js or include it here
+        async function loadFailedLogs() {
+            try {
+                const response = await fetch('/logs_json');
+                const data = await response.json();
+
+                // Filter only failed entries
+                const failedLogs = data.filter(log =>
+                    log.ping.toLowerCase() === 'fail' ||
+                    log.http.toLowerCase() === 'fail'
+                );
+
+                const tbody = document.getElementById('failedLogsBody');
+                tbody.innerHTML = '';
+
+                failedLogs.forEach(log => {
+                    const row = document.createElement('tr');
+                    row.className = log.down ? 'status-down' : '';
+                    row.innerHTML = `
+                        <td>${log.date}</td>
+                        <td>${log.time}</td>
+                        <td>${log.device}</td>
+                        <td class="${log.ping.toLowerCase() === 'fail' ? 'status-fail' : 'status-ok'}">${log.ping}</td>
+                        <td class="${log.http.toLowerCase() === 'fail' ? 'status-fail' : 'status-ok'}">${log.http}</td>
+                        <td>${log.bandwidth}</td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            } catch (error) {
+                console.error('Error loading failed logs:', error);
+            }
+        }
+
+        function applyFilters() {
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+            const deviceName = document.getElementById('deviceFilter').value.toLowerCase();
+
+            const rows = document.getElementById('failedLogsBody').getElementsByTagName('tr');
+
+            for (let row of rows) {
+                const date = row.cells[0].textContent;
+                const device = row.cells[2].textContent.toLowerCase();
+
+                let show = true;
+
+                if (startDate && date < startDate) show = false;
+                if (endDate && date > endDate) show = false;
+                if (deviceName && !device.includes(deviceName)) show = false;
+
+                row.style.display = show ? '' : 'none';
+            }
+        }
+
+        // Load failed logs when page loads
+        document.addEventListener('DOMContentLoaded', loadFailedLogs);
+        // Refresh logs every 30 seconds
+        setInterval(loadFailedLogs, 30000);
+
+
+       function toggleDarkMode() {
+          const body = document.body;
+          body.classList.toggle('dark-mode');
+          const darkModeToggle = document.querySelector('.dark-mode-toggle');
+          darkModeToggle.classList.toggle('active');
+
+          // Save the current mode to localStorage
+          const isDarkMode = body.classList.contains('dark-mode');
+          localStorage.setItem('darkMode', isDarkMode);
+        }
+
+        // Check for saved dark mode preference
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedDarkMode = localStorage.getItem('darkMode');
+            if (savedDarkMode === 'true') {
+                document.body.classList.add('dark-mode');
+                document.querySelector('.dark-mode-toggle').classList.add('active');
+            }
+        });
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,603 @@
+:root {
+    --primary-color: #007aff; /* Apple's primary blue */
+    --background-color-light: #f2f2f7; /* Light grey background */
+    --background-color-dark: #1c1c1e; /* Dark mode background */
+    --text-color-light: #000000; /* Black text for light mode */
+    --text-color-dark: #ffffff; /* White text for dark mode */
+    --card-background-light: #ffffff; /* White cards */
+    --card-background-dark: #2c2c2e; /* Dark grey cards */
+    --border-color-light: #c7c7cc; /* Light grey borders */
+    --border-color-dark: #3a3a3c; /* Dark grey borders */
+    --shadow-color: rgba(0, 0, 0, 0.2); /* Subtle shadow */
+    --accent-color: #007aff; /* Use primary color as accent */
+    --success-color: #34c759; /* Green for success */
+    --warning-color: #ffcc00; /* Yellow for warning */
+    --error-color: #ff3b30; /* Red for error */
+    --table-header-bg-light: #e8e8ed;  /* Lighter grey for table headers */
+    --table-header-bg-dark: #3a3a3c; /* Darker grey for dark mode table headers */
+    --border-radius: 10px; /* Rounded corners */
+    --button-border-radius: 8px; /* Rounded corners for buttons */
+    --input-background-light: #ffffff; /* Light input background */
+    --input-background-dark: #3a3a3c; /* Dark input background */
+    --button-hover-brightness: 0.85; /* Add a hover effect */
+}
+
+
+body {
+    font-family: 'SF Pro Text', -apple-system, BlinkMacSystemFont, 'Roboto', sans-serif; /* Use Apple's system font */
+    margin: 0;
+    transition: background-color 0.3s, color 0.3s;
+    background-color: var(--background-color-light);
+    color: var(--text-color-light);
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    padding: 1rem;
+}
+
+body.dark-mode {
+    background-color: var(--background-color-dark);
+    color: var(--text-color-dark);
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background-color: var(--card-background-light);
+    box-shadow: 0 1px 2px var(--shadow-color); /* Reduced shadow */
+    position: sticky;
+    top: 0;
+    z-index: 3;
+    border-radius: var(--border-radius);
+    margin-bottom: 1rem;
+}
+
+.dark-mode .header {
+    background-color: var(--card-background-dark);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4); /* Shadow for dark mode */
+}
+
+.header h1 {
+    font-size: 1.5rem; /* Slightly smaller title */
+    font-weight: 600; /* Semi-bold */
+    color: var(--primary-color);
+    margin: 0;
+}
+
+.filter-container {
+    display: flex;
+    align-items: center;
+    gap: 8px; /* Reduced gap */
+}
+
+#filterInput {
+    padding: 8px 12px; /* Adjusted padding */
+    border: 1px solid var(--border-color-light);
+    border-radius: var(--button-border-radius);
+    font-size: 14px;
+    margin-right: 0; /* Remove margin */
+    transition: border-color 0.2s, box-shadow 0.2s;
+    outline: none;
+    background-color: var(--input-background-light);
+}
+
+#filterInput:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25); /* Focus ring */
+}
+
+.dark-mode #filterInput {
+    background-color: var(--input-background-dark);
+    color: var(--text-color-dark);
+    border: 1px solid var(--border-color-dark);
+}
+.dark-mode #filterInput:focus {
+   box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.5);
+}
+
+#filterButton, #clearFilterButton, #logViewButton, #failedLogsButton {
+    padding: 8px 16px;
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: var(--button-border-radius);
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.2s;
+    outline: none;
+    display: inline-flex; /* For aligning icon with text */
+    align-items: center;
+    justify-content: center;
+    gap: 6px; /* Space between icon and text */
+}
+
+#clearFilterButton {
+    background-color: var(--error-color);
+}
+
+#logViewButton {
+    background-color: var(--success-color);
+}
+
+#failedLogsButton {
+    background-color: var(--error-color);
+}
+
+
+#filterButton:hover, #clearFilterButton:hover, #logViewButton:hover, #failedLogsButton:hover {
+     filter: brightness(var(--button-hover-brightness));
+}
+#failedLogsButton:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+
+#failedLogsButton:disabled:hover {
+    filter: none;
+}
+
+.dark-mode-toggle {
+    cursor: pointer;
+    z-index: 100;
+    background-color: var(--card-background-light);
+    border-radius: 50%;
+    box-shadow: 0 1px 2px var(--shadow-color);
+    width: 40px; /* Slightly smaller */
+    height: 40px; /* Slightly smaller */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.3s ease;
+}
+
+.dark-mode .dark-mode-toggle {
+    background-color: var(--card-background-dark);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+}
+
+.dark-mode-toggle i {
+    color: var(--text-color-light);
+    font-size: 1.25rem; /* Slightly smaller icon */
+    transition: transform 0.3s ease;
+}
+
+.dark-mode .dark-mode-toggle i {
+    color: var(--text-color-dark);
+}
+
+.dark-mode-toggle.active i {
+    transform: rotate(180deg);
+}
+
+.dashboard {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 1rem;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.table-container {
+    overflow-x: auto;
+    border-radius: var(--border-radius);
+     box-shadow: 0 1px 2px var(--shadow-color);
+    margin-bottom: 2rem;
+
+}
+.dark-mode .table-container {
+    box-shadow: 0 1px 2px rgba(0,0,0,0.4);
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+}
+
+th, td {
+    padding: 0.8rem 1rem; /* Adjusted padding */
+    text-align: left;
+    border-bottom: 1px solid var(--border-color-light);
+}
+
+th {
+    background-color: var(--table-header-bg-light);
+    color: var(--text-color-light);
+    font-weight: 600; /* Semi-bold */
+    position: sticky;
+    top: 0;
+    z-index: 2;
+}
+
+.dark-mode th {
+    background-color: var(--table-header-bg-dark);
+    color: var(--text-color-dark);
+     border-bottom: 1px solid var(--border-color-dark);
+}
+.dark-mode td {
+    border-bottom: 1px solid var(--border-color-dark);
+}
+
+tr:hover {
+    background-color: rgba(0, 123, 255, 0.05); /* Lighter hover */
+}
+
+.dark-mode tr:hover {
+    background-color: rgba(255, 255, 255, 0.08);
+}
+
+.sensor-box {
+    display: inline-block;
+    padding: 0.2rem 0.5rem; /* Smaller padding */
+    margin: 0.125rem;
+    background: rgba(0, 123, 255, 0.1);
+    border: 1px solid rgba(0, 123, 255, 0.3);
+    border-radius: 6px; /* Smaller radius */
+    font-size: 0.7rem; /* Smaller font */
+    color: var(--primary-color);
+    white-space: nowrap;
+}
+
+.dark-mode .sensor-box {
+    background: rgba(0, 123, 255, 0.2);
+    border: 1px solid rgba(0, 123, 255, 0.5);
+    color: var(--accent-color);
+}
+
+.status-dot {
+    display: inline-block;
+    width: 10px; /* Smaller dot */
+    height: 10px; /* Smaller dot */
+    border-radius: 50%;
+    margin-right: 0.4rem; /* Smaller margin */
+    vertical-align: middle;
+}
+
+.status-dot.green  { background: var(--success-color); }
+.status-dot.red    { background: var(--error-color); }
+.status-dot.yellow { background: var(--warning-color); }
+
+.charts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    justify-content: space-between;
+}
+
+.chart-box {
+    flex: 1 1 calc(50% - 1rem);
+    min-width: 300px;
+    background: var(--card-background-light);
+    border-radius: var(--border-radius);
+    box-shadow: 0 1px 2px var(--shadow-color);
+    padding: 1rem;
+    box-sizing: border-box;
+}
+
+.dark-mode .chart-box {
+    background: var(--card-background-dark);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+}
+
+.chart-container {
+    width: 100%;
+    height: 250px;
+    position: relative;
+}
+
+.footer {
+    text-align: center;
+    font-size: 0.8rem; /* Smaller font */
+    color: #8e8e93; /* Lighter grey text */
+    margin-top: 2rem;
+    padding: 1rem 0;
+    border-top: 1px solid var(--border-color-light);
+}
+
+.dark-mode .footer {
+    color: #8e8e93;
+    border-top: 1px solid var(--border-color-dark);
+}
+
+/* Media Queries */
+@media (max-width: 768px) {
+    .charts {
+        flex-direction: column;
+    }
+
+    .chart-box {
+        flex-basis: 100%;
+    }
+
+    th, td {
+        padding: 0.6rem 0.4rem; /* Smaller padding */
+        font-size: 0.85rem; /* Smaller font */
+    }
+
+    th:nth-child(3), td:nth-child(3),
+    th:nth-child(5), td:nth-child(5) {
+        display: none;
+    }
+
+    .header {
+        flex-direction: column;
+        align-items: stretch;
+        padding: 0.5rem;
+    }
+
+    .header h1 {
+        margin-bottom: 0.5rem;
+        text-align: center;
+    }
+
+    .filter-container {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .dark-mode-toggle {
+        position: absolute;
+        top: 0.5rem;
+        right: 0.5rem;
+    }
+      .filter-container {
+        flex-wrap: wrap; /* Wrap items on smaller screens */
+    }
+
+    #filterInput {
+        flex: 1 1 100%; /* Full width input */
+        margin-bottom: 0.5rem; /* Space below input */
+    }
+
+    .filter-container button {
+        flex: 1 1 auto; /* Buttons take available space */
+    }
+}
+
+
+@media (max-width: 1024px) and (min-width: 769px) {
+    .chart-box {
+        flex-basis: calc(50% - 1rem);
+    }
+}
+
+.card {
+  background-color: var(--card-background-light);
+  border-radius: var(--border-radius);
+  box-shadow: 0 1px 2px var(--shadow-color);
+  padding: 1rem;
+  margin-top: 1rem;
+}
+
+.dark-mode .card {
+  background-color: var(--card-background-dark);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+}
+
+.log-export h2 {
+  margin-top: 0;
+  color: var(--primary-color);
+  font-size: 1.25rem;  /* Slightly smaller title */
+  font-weight: 600;   /* Semi-bold */
+  text-align: center;
+}
+
+.log-export form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.log-export .form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.log-export .form-group label {
+  font-weight: 500;
+  margin-bottom: 0.25rem;
+  font-size: 0.9rem;  /* Smaller label font size */
+  color: var(--text-color-light)
+}
+
+.dark-mode .log-export .form-group label {
+    color: var(--text-color-dark);
+}
+
+.log-export .form-group input,
+.log-export .form-group select {
+  padding: 8px 12px;
+  border: 1px solid var(--border-color-light);
+  border-radius: var(--button-border-radius);
+  font-size: 14px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  outline: none;
+  background-color: var(--input-background-light);
+  color: var(--text-color-light);
+}
+.dark-mode .log-export .form-group input, .dark-mode .log-export .form-group select {
+     background-color: var(--input-background-dark);
+      color: var(--text-color-dark);
+      border-color: var(--border-color-dark);
+}
+
+.log-export .form-group input:focus,
+.log-export .form-group select:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+.dark-mode .log-export .form-group input:focus,
+.dark-mode .log-export .form-group select:focus {
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.5);
+}
+.log-export .form-group small {
+    font-size: 0.75rem;
+    color: #8e8e93; /* Lighter color for small text */
+}
+
+.action-button {
+    padding: 8px 16px;
+    background-color: var(--primary-color);
+    color: #fff;
+    border: none;
+    border-radius: var(--button-border-radius);
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.2s;
+    display: inline-flex; /* Align icon with text */
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+.action-button:hover {
+   filter: brightness(var(--button-hover-brightness));
+}
+.log-export .form-group .error-message {
+  color: var(--error-color);
+  font-size: 0.75rem;  /* Smaller error message font size */
+  margin-top: 0.25rem;
+}
+.log-export .form-group .success-message {
+  color: var(--success-color);
+  font-size: 0.75rem;   /* Smaller success message font size */
+  margin-top: 0.25rem;
+}
+.log-export .form-group .info-message {
+  color: var(--text-color-light);
+  font-size: 0.75rem;  /* Smaller info message font size */
+  margin-top: 0.25rem;
+}
+.dark-mode .log-export .form-group .info-message {
+     color: var(--text-color-dark);
+}
+.log-export .form-group .info-message a {
+  color: var(--primary-color);
+  text-decoration: underline;
+}
+
+.filters {
+    margin: 20px 0;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.filters input {
+    padding: 8px;
+     border: 1px solid var(--border-color-light);
+    border-radius: var(--button-border-radius);
+    font-size: 14px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    outline: none;
+      background-color: var(--input-background-light);
+}
+
+.dark-mode .filters input {
+     background-color: var(--input-background-dark);
+    color: var(--text-color-dark);
+    border: 1px solid var(--border-color-dark);
+}
+.filters input:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25); /* Focus ring */
+}
+.dark-mode .filters input:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.5); /* Focus ring */
+}
+
+.filters button {
+    padding: 8px 16px;
+     background-color: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: var(--button-border-radius);
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.2s;
+    outline: none;
+    display: inline-flex; /* For aligning icon with text */
+    align-items: center;
+    justify-content: center;
+    gap: 6px; /* Space between icon and text */
+}
+
+.filters button:hover {
+    filter: brightness(var(--button-hover-brightness));
+}
+
+.logs-container {
+    margin-top: 20px;
+    overflow-x: auto;
+}
+
+.status-fail {
+    color: var(--error-color);
+    font-weight: bold;
+}
+
+.status-ok {
+    color: var(--success-color);
+}
+
+.nav-link {
+     padding: 8px 16px;
+    background-color: transparent;
+    color: var(--primary-color);
+    border: 1px solid transparent;
+    border-radius: var(--button-border-radius);
+    text-decoration: none;
+    transition: background-color 0.2s, color 0.2s, border-color 0.2s;
+    display: inline-block;/*For padding*/
+    margin-right: 4px;/*Space between link*/
+}
+.nav-link:hover, .nav-link:focus {
+    background-color: rgba(0, 123, 255, 0.1); /* Light background on hover/focus */
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+     outline: none;  /* Remove default focus outline */
+}
+
+.nav-link.active {
+    background-color: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
+
+
+#failedLogsTable {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+#failedLogsTable th,
+#failedLogsTable td {
+    padding: 0.8rem 1rem;
+    text-align: left;
+     border-bottom: 1px solid var(--border-color-light);
+}
+
+#failedLogsTable th {
+   background-color: var(--table-header-bg-light);
+    color: var(--text-color-light);
+    font-weight: 600; /* Semi-bold */
+}
+
+#failedLogsTable tr:hover {
+    background-color: rgba(0, 123, 255, 0.05);
+}
+.dark-mode #failedLogsTable th {
+    background-color: var(--table-header-bg-dark);
+    color: var(--text-color-dark);
+     border-bottom: 1px solid var(--border-color-dark);
+}
+.dark-mode #failedLogsTable td{
+    border-bottom: 1px solid var(--border-color-dark);
+}
+.dark-mode #failedLogsTable tr:hover {
+    background-color: rgba(255, 255, 255, 0.08);
+}
