@@ -1,38 +1,55 @@
 :root {
+    /*  --- Core Colors --- */
     --primary-color: #007aff; /* Apple's primary blue */
-    --background-color-light: #f2f2f7; /* Light grey background */
-    --background-color-dark: #1c1c1e; /* Dark mode background */
-    --text-color-light: #000000; /* Black text for light mode */
-    --text-color-dark: #ffffff; /* White text for dark mode */
-    --card-background-light: #ffffff; /* White cards */
-    --card-background-dark: #2c2c2e; /* Dark grey cards */
-    --border-color-light: #c7c7cc; /* Light grey borders */
-    --border-color-dark: #3a3a3c; /* Dark grey borders */
-    --shadow-color: rgba(0, 0, 0, 0.2); /* Subtle shadow */
-    --accent-color: #007aff; /* Use primary color as accent */
+    --accent-color: #007aff; /* Use primary color as accent (can be different) */
     --success-color: #34c759; /* Green for success */
     --warning-color: #ffcc00; /* Yellow for warning */
     --error-color: #ff3b30; /* Red for error */
+
+    /* --- Light Mode Colors --- */
+    --background-color-light: #f2f2f7; /* Light grey background */
+    --text-color-light: #000000; /* Black text for light mode */
+    --card-background-light: #ffffff; /* White cards */
+    --border-color-light: #c7c7cc; /* Light grey borders */
     --table-header-bg-light: #e8e8ed;  /* Lighter grey for table headers */
+    --input-background-light: #ffffff;
+
+    /* --- Dark Mode Colors --- */
+    --background-color-dark: #1c1c1e; /* Dark mode background */
+    --text-color-dark: #ffffff; /* White text for dark mode */
+    --card-background-dark: #2c2c2e; /* Dark grey cards */
+    --border-color-dark: #3a3a3c; /* Dark grey borders */
     --table-header-bg-dark: #3a3a3c; /* Darker grey for dark mode table headers */
+    --input-background-dark: #3a3a3c;
+
+    /* --- Common Styles --- */
+    --shadow-color: rgba(0, 0, 0, 0.15); /* Subtle shadow - slightly reduced */
     --border-radius: 10px; /* Rounded corners */
     --button-border-radius: 8px; /* Rounded corners for buttons */
-    --input-background-light: #ffffff; /* Light input background */
-    --input-background-dark: #3a3a3c; /* Dark input background */
-    --button-hover-brightness: 0.85; /* Add a hover effect */
+    --transition-speed: 0.3s; /* Consistent transition speed */
+    --button-hover-brightness: 0.85;
+
+    /* --- Chart Colors (for multi-color support) --- */
+    --chart-color-1: #007aff;  /* Primary */
+    --chart-color-2: #34c759;  /* Success */
+    --chart-color-3: #ffcc00;  /* Warning */
+    --chart-color-4: #ff3b30;  /* Error */
+    --chart-color-5: #5ac8fa;  /* Light Blue */
+    --chart-color-6: #ff9500;  /* Orange */
+     /* Add more chart colors as needed */
 }
 
 
 body {
-    font-family: 'SF Pro Text', -apple-system, BlinkMacSystemFont, 'Roboto', sans-serif; /* Use Apple's system font */
+    font-family: 'SF Pro Text', -apple-system, BlinkMacSystemFont, 'Roboto', sans-serif;
     margin: 0;
-    transition: background-color 0.3s, color 0.3s;
     background-color: var(--background-color-light);
     color: var(--text-color-light);
     display: flex;
     flex-direction: column;
     min-height: 100vh;
     padding: 1rem;
+    transition: background-color var(--transition-speed) ease, color var(--transition-speed) ease;
 }
 
 body.dark-mode {
@@ -40,52 +57,67 @@ body.dark-mode {
     color: var(--text-color-dark);
 }
 
+/* --- Header --- */
 .header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 1rem;
     background-color: var(--card-background-light);
-    box-shadow: 0 1px 2px var(--shadow-color); /* Reduced shadow */
+    box-shadow: 0 2px 4px var(--shadow-color); /* More pronounced, yet subtle shadow */
     position: sticky;
     top: 0;
     z-index: 3;
     border-radius: var(--border-radius);
     margin-bottom: 1rem;
+    transition: background-color var(--transition-speed) ease, box-shadow var(--transition-speed) ease; /* Smooth transitions */
 }
 
 .dark-mode .header {
     background-color: var(--card-background-dark);
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4); /* Shadow for dark mode */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4); /* Shadow for dark mode */
 }
 
 .header h1 {
-    font-size: 1.5rem; /* Slightly smaller title */
-    font-weight: 600; /* Semi-bold */
+    font-size: 1.5rem;
+    font-weight: 600;
     color: var(--primary-color);
     margin: 0;
+    transition: color var(--transition-speed) ease;
 }
 
+.header .logo {
+    display: flex;
+    align-items: center;
+}
+
+.header .logo img {
+    height: 40px;
+    width: auto;
+    margin-right: 20px;
+}
+
+/* --- Filter Container --- */
 .filter-container {
     display: flex;
     align-items: center;
-    gap: 8px; /* Reduced gap */
+    gap: 8px;
 }
 
 #filterInput {
-    padding: 8px 12px; /* Adjusted padding */
+    padding: 8px 12px;
     border: 1px solid var(--border-color-light);
     border-radius: var(--button-border-radius);
     font-size: 14px;
-    margin-right: 0; /* Remove margin */
-    transition: border-color 0.2s, box-shadow 0.2s;
+    margin-right: 0;
+    transition: border-color var(--transition-speed) ease, box-shadow var(--transition-speed) ease, background-color var(--transition-speed) ease;
     outline: none;
     background-color: var(--input-background-light);
 }
 
 #filterInput:focus {
     border-color: var(--primary-color);
-    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25); /* Focus ring */
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
 }
 
 .dark-mode #filterInput {
@@ -97,6 +129,7 @@ body.dark-mode {
    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.5);
 }
 
+/* --- Buttons --- */
 #filterButton, #clearFilterButton, #logViewButton, #failedLogsButton {
     padding: 8px 16px;
     background-color: var(--primary-color);
@@ -105,14 +138,14 @@ body.dark-mode {
     border-radius: var(--button-border-radius);
     cursor: pointer;
     font-size: 14px;
-    transition: background-color 0.2s;
+    transition: background-color var(--transition-speed) ease, filter var(--transition-speed) ease; /* Added filter transition */
     outline: none;
-    display: inline-flex; /* For aligning icon with text */
+    display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 6px; /* Space between icon and text */
+    gap: 6px;
 }
-
+/* Specific button colors */
 #clearFilterButton {
     background-color: var(--error-color);
 }
@@ -125,52 +158,52 @@ body.dark-mode {
     background-color: var(--error-color);
 }
 
-
-#filterButton:hover, #clearFilterButton:hover, #logViewButton:hover, #failedLogsButton:hover {
-     filter: brightness(var(--button-hover-brightness));
+#filterButton:hover, #clearFilterButton:hover, #logViewButton:hover, #failedLogsButton:hover{
+    filter: brightness(var(--button-hover-brightness));
 }
 #failedLogsButton:disabled {
     background-color: #ccc;
     cursor: not-allowed;
 }
-
 #failedLogsButton:disabled:hover {
-    filter: none;
+    filter: none; /* Remove hover effect when disabled */
 }
 
+/* --- Dark Mode Toggle --- */
 .dark-mode-toggle {
     cursor: pointer;
     z-index: 100;
     background-color: var(--card-background-light);
     border-radius: 50%;
-    box-shadow: 0 1px 2px var(--shadow-color);
-    width: 40px; /* Slightly smaller */
-    height: 40px; /* Slightly smaller */
+    box-shadow: 0 2px 4px var(--shadow-color); /* More pronounced shadow */
+    width: 40px;
+    height: 40px;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: transform 0.3s ease;
+    transition: transform var(--transition-speed) ease, background-color var(--transition-speed) ease, box-shadow var(--transition-speed) ease; /* Smooth transitions */
 }
 
 .dark-mode .dark-mode-toggle {
     background-color: var(--card-background-dark);
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
 }
 
 .dark-mode-toggle i {
     color: var(--text-color-light);
-    font-size: 1.25rem; /* Slightly smaller icon */
-    transition: transform 0.3s ease;
+    font-size: 1.25rem;
+    transition: transform var(--transition-speed) ease, color var(--transition-speed) ease; /* Smooth icon transition */
 }
 
 .dark-mode .dark-mode-toggle i {
     color: var(--text-color-dark);
 }
-
+/* Rotate icon on active */
 .dark-mode-toggle.active i {
     transform: rotate(180deg);
 }
 
+/* --- Dashboard --- */
 .dashboard {
     max-width: 1400px;
     margin: 0 auto;
@@ -179,65 +212,74 @@ body.dark-mode {
     box-sizing: border-box;
 }
 
+/* --- Table Container --- */
 .table-container {
     overflow-x: auto;
     border-radius: var(--border-radius);
-     box-shadow: 0 1px 2px var(--shadow-color);
+    box-shadow: 0 2px 4px var(--shadow-color);
     margin-bottom: 2rem;
-
+    transition: box-shadow var(--transition-speed) ease;
 }
+
 .dark-mode .table-container {
-    box-shadow: 0 1px 2px rgba(0,0,0,0.4);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
 }
 
+/* --- Table --- */
 table {
     width: 100%;
     border-collapse: collapse;
-    table-layout: fixed;
+    table-layout: fixed; /* Important for consistent column widths */
 }
 
 th, td {
-    padding: 0.8rem 1rem; /* Adjusted padding */
+    padding: 0.8rem 1rem;
     text-align: left;
     border-bottom: 1px solid var(--border-color-light);
+    transition: border-color var(--transition-speed) ease; /* Add transition to border */
 }
 
 th {
     background-color: var(--table-header-bg-light);
     color: var(--text-color-light);
-    font-weight: 600; /* Semi-bold */
+    font-weight: 600;
     position: sticky;
     top: 0;
     z-index: 2;
+    transition: background-color var(--transition-speed) ease, color var(--transition-speed) ease; /* Smooth transitions */
 }
 
 .dark-mode th {
     background-color: var(--table-header-bg-dark);
     color: var(--text-color-dark);
-     border-bottom: 1px solid var(--border-color-dark);
+    border-bottom: 1px solid var(--border-color-dark);
 }
 .dark-mode td {
     border-bottom: 1px solid var(--border-color-dark);
 }
-
+/* Row Hover Effect */
 tr:hover {
-    background-color: rgba(0, 123, 255, 0.05); /* Lighter hover */
+    background-color: rgba(0, 123, 255, 0.05);
+    transition: background-color var(--transition-speed) ease;
 }
 
 .dark-mode tr:hover {
     background-color: rgba(255, 255, 255, 0.08);
 }
 
+/* --- Sensor Box --- */
 .sensor-box {
     display: inline-block;
-    padding: 0.2rem 0.5rem; /* Smaller padding */
+    padding: 0.2rem 0.5rem;
     margin: 0.125rem;
     background: rgba(0, 123, 255, 0.1);
     border: 1px solid rgba(0, 123, 255, 0.3);
-    border-radius: 6px; /* Smaller radius */
-    font-size: 0.7rem; /* Smaller font */
+    border-radius: 6px;
+    font-size: 0.7rem;
     color: var(--primary-color);
     white-space: nowrap;
+     /* Add transitions */
+    transition: background-color var(--transition-speed) ease, border-color var(--transition-speed) ease, color var(--transition-speed) ease;
 }
 
 .dark-mode .sensor-box {
@@ -246,12 +288,13 @@ tr:hover {
     color: var(--accent-color);
 }
 
+/* --- Status Dot --- */
 .status-dot {
     display: inline-block;
-    width: 10px; /* Smaller dot */
-    height: 10px; /* Smaller dot */
+    width: 10px;
+    height: 10px;
     border-radius: 50%;
-    margin-right: 0.4rem; /* Smaller margin */
+    margin-right: 0.4rem;
     vertical-align: middle;
 }
 
@@ -259,26 +302,28 @@ tr:hover {
 .status-dot.red    { background: var(--error-color); }
 .status-dot.yellow { background: var(--warning-color); }
 
+/* --- Charts --- */
 .charts {
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: wrap; /* Allow charts to wrap on smaller screens */
     gap: 1rem;
     justify-content: space-between;
 }
 
 .chart-box {
-    flex: 1 1 calc(50% - 1rem);
-    min-width: 300px;
+    flex: 1 1 calc(50% - 1rem);  /*  2 charts per row, accounting for gap */
+    min-width: 300px; /* Minimum width to prevent overly small charts */
     background: var(--card-background-light);
     border-radius: var(--border-radius);
-    box-shadow: 0 1px 2px var(--shadow-color);
+    box-shadow: 0 2px 4px var(--shadow-color);
     padding: 1rem;
     box-sizing: border-box;
+    transition: background-color var(--transition-speed) ease, box-shadow var(--transition-speed) ease; /* Smooth transitions */
 }
 
 .dark-mode .chart-box {
     background: var(--card-background-dark);
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
 }
 
 .chart-container {
@@ -287,13 +332,15 @@ tr:hover {
     position: relative;
 }
 
+/* --- Footer --- */
 .footer {
     text-align: center;
-    font-size: 0.8rem; /* Smaller font */
-    color: #8e8e93; /* Lighter grey text */
+    font-size: 0.8rem;
+    color: #8e8e93;
     margin-top: 2rem;
     padding: 1rem 0;
     border-top: 1px solid var(--border-color-light);
+     transition: border-color var(--transition-speed) ease, color var(--transition-speed) ease;
 }
 
 .dark-mode .footer {
@@ -301,21 +348,23 @@ tr:hover {
     border-top: 1px solid var(--border-color-dark);
 }
 
-/* Media Queries */
+/* --- Media Queries --- */
+/* Mobile Devices */
 @media (max-width: 768px) {
     .charts {
-        flex-direction: column;
+        flex-direction: column;  /* Stack charts vertically */
     }
 
     .chart-box {
-        flex-basis: 100%;
+        flex-basis: 100%; /* Full width */
     }
 
     th, td {
-        padding: 0.6rem 0.4rem; /* Smaller padding */
-        font-size: 0.85rem; /* Smaller font */
+        padding: 0.6rem 0.4rem;
+        font-size: 0.85rem;
     }
 
+    /* Hide less important columns on small screens */
     th:nth-child(3), td:nth-child(3),
     th:nth-child(5), td:nth-child(5) {
         display: none;
@@ -335,6 +384,7 @@ tr:hover {
     .filter-container {
         width: 100%;
         justify-content: center;
+        flex-wrap: wrap; /* Wrap filter elements */
     }
 
     .dark-mode-toggle {
@@ -342,81 +392,86 @@ tr:hover {
         top: 0.5rem;
         right: 0.5rem;
     }
-      .filter-container {
-        flex-wrap: wrap; /* Wrap items on smaller screens */
+       .filter-container {
+        flex-wrap: wrap;
     }
-
-    #filterInput {
-        flex: 1 1 100%; /* Full width input */
-        margin-bottom: 0.5rem; /* Space below input */
+     #filterInput {
+        flex: 1 1 100%;
+        margin-bottom: 0.5rem;
     }
 
     .filter-container button {
-        flex: 1 1 auto; /* Buttons take available space */
+        flex: 1 1 auto;
     }
 }
 
-
+/* Tablets */
 @media (max-width: 1024px) and (min-width: 769px) {
     .chart-box {
-        flex-basis: calc(50% - 1rem);
+        flex-basis: calc(50% - 1rem); /* Two charts per row */
     }
 }
 
+/* --- Card --- */
 .card {
-  background-color: var(--card-background-light);
-  border-radius: var(--border-radius);
-  box-shadow: 0 1px 2px var(--shadow-color);
-  padding: 1rem;
-  margin-top: 1rem;
+    background-color: var(--card-background-light);
+    border-radius: var(--border-radius);
+    box-shadow: 0 2px 4px var(--shadow-color);
+    padding: 1rem;
+    margin-top: 1rem;
+    transition: background-color var(--transition-speed) ease, box-shadow var(--transition-speed) ease;
 }
 
 .dark-mode .card {
-  background-color: var(--card-background-dark);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+    background-color: var(--card-background-dark);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
 }
 
+/* --- Log Export Section --- */
 .log-export h2 {
-  margin-top: 0;
-  color: var(--primary-color);
-  font-size: 1.25rem;  /* Slightly smaller title */
-  font-weight: 600;   /* Semi-bold */
-  text-align: center;
+    margin-top: 0;
+    color: var(--primary-color);
+    font-size: 1.25rem;
+    font-weight: 600;
+    text-align: center;
+    transition: color var(--transition-speed) ease; /* Smooth transition */
 }
 
 .log-export form {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
 }
 
 .log-export .form-group {
-  display: flex;
-  flex-direction: column;
+    display: flex;
+    flex-direction: column;
 }
 
 .log-export .form-group label {
-  font-weight: 500;
-  margin-bottom: 0.25rem;
-  font-size: 0.9rem;  /* Smaller label font size */
-  color: var(--text-color-light)
+    font-weight: 500;
+    margin-bottom: 0.25rem;
+    font-size: 0.9rem;
+    color: var(--text-color-light);
+    transition: color var(--transition-speed) ease; /* Smooth transition */
+
 }
 
 .dark-mode .log-export .form-group label {
     color: var(--text-color-dark);
 }
-
 .log-export .form-group input,
 .log-export .form-group select {
   padding: 8px 12px;
   border: 1px solid var(--border-color-light);
   border-radius: var(--button-border-radius);
   font-size: 14px;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition: border-color var(--transition-speed) ease, box-shadow var(--transition-speed) ease, background-color var(--transition-speed) ease; /*Added transition*/
   outline: none;
   background-color: var(--input-background-light);
   color: var(--text-color-light);
 }
+
 .dark-mode .log-export .form-group input, .dark-mode .log-export .form-group select {
      background-color: var(--input-background-dark);
       color: var(--text-color-dark);
@@ -434,9 +489,9 @@ tr:hover {
 }
 .log-export .form-group small {
     font-size: 0.75rem;
-    color: #8e8e93; /* Lighter color for small text */
+    color: #8e8e93;
 }
-
+/* --- Action Button (for forms) --- */
 .action-button {
     padding: 8px 16px;
     background-color: var(--primary-color);
@@ -445,39 +500,46 @@ tr:hover {
     border-radius: var(--button-border-radius);
     cursor: pointer;
     font-size: 14px;
-    transition: background-color 0.2s;
-    display: inline-flex; /* Align icon with text */
+    transition: background-color var(--transition-speed) ease, filter var(--transition-speed) ease; /* Add filter transition */
+    display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 6px;
 }
 
 .action-button:hover {
-   filter: brightness(var(--button-hover-brightness));
+    filter: brightness(var(--button-hover-brightness));
 }
+
+/* --- Form Messages --- */
 .log-export .form-group .error-message {
-  color: var(--error-color);
-  font-size: 0.75rem;  /* Smaller error message font size */
-  margin-top: 0.25rem;
+    color: var(--error-color);
+    font-size: 0.75rem;
+    margin-top: 0.25rem;
 }
+
 .log-export .form-group .success-message {
-  color: var(--success-color);
-  font-size: 0.75rem;   /* Smaller success message font size */
-  margin-top: 0.25rem;
+    color: var(--success-color);
+    font-size: 0.75rem;
+    margin-top: 0.25rem;
 }
+
 .log-export .form-group .info-message {
-  color: var(--text-color-light);
-  font-size: 0.75rem;  /* Smaller info message font size */
-  margin-top: 0.25rem;
+    color: var(--text-color-light);
+    font-size: 0.75rem;
+    margin-top: 0.25rem;
+    transition: color var(--transition-speed) ease; /* Add transition */
 }
 .dark-mode .log-export .form-group .info-message {
      color: var(--text-color-dark);
 }
+
 .log-export .form-group .info-message a {
-  color: var(--primary-color);
-  text-decoration: underline;
+    color: var(--primary-color);
+    text-decoration: underline;
 }
 
+/* --- Filters (for logs page) --- */
 .filters {
     margin: 20px 0;
     display: flex;
@@ -487,53 +549,56 @@ tr:hover {
 
 .filters input {
     padding: 8px;
-     border: 1px solid var(--border-color-light);
+    border: 1px solid var(--border-color-light);
     border-radius: var(--button-border-radius);
     font-size: 14px;
-    transition: border-color 0.2s, box-shadow 0.2s;
+    transition: border-color var(--transition-speed) ease, box-shadow var(--transition-speed) ease, background-color var(--transition-speed) ease;
     outline: none;
-      background-color: var(--input-background-light);
+    background-color: var(--input-background-light);
 }
 
 .dark-mode .filters input {
-     background-color: var(--input-background-dark);
+    background-color: var(--input-background-dark);
     color: var(--text-color-dark);
     border: 1px solid var(--border-color-dark);
 }
+
 .filters input:focus {
     border-color: var(--primary-color);
-    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25); /* Focus ring */
-}
-.dark-mode .filters input:focus {
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.5); /* Focus ring */
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
 }
 
+.dark-mode .filters input:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.5);
+}
 .filters button {
     padding: 8px 16px;
-     background-color: var(--primary-color);
+    background-color: var(--primary-color);
     color: white;
     border: none;
     border-radius: var(--button-border-radius);
     cursor: pointer;
     font-size: 14px;
-    transition: background-color 0.2s;
+    transition: background-color var(--transition-speed) ease, filter var(--transition-speed) ease; /* Smooth transitions */
     outline: none;
-    display: inline-flex; /* For aligning icon with text */
+    display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 6px; /* Space between icon and text */
+    gap: 6px;
 }
 
 .filters button:hover {
-    filter: brightness(var(--button-hover-brightness));
+   filter: brightness(var(--button-hover-brightness));
 }
 
+/* --- Logs Container (for logs page) --- */
 .logs-container {
     margin-top: 20px;
     overflow-x: auto;
 }
 
+/* --- Status Indicators (for logs) --- */
 .status-fail {
     color: var(--error-color);
     font-weight: bold;
@@ -543,31 +608,35 @@ tr:hover {
     color: var(--success-color);
 }
 
+/* --- Navigation Links --- */
 .nav-link {
-     padding: 8px 16px;
+    padding: 8px 16px;
     background-color: transparent;
     color: var(--primary-color);
     border: 1px solid transparent;
     border-radius: var(--button-border-radius);
     text-decoration: none;
     transition: background-color 0.2s, color 0.2s, border-color 0.2s;
-    display: inline-block;/*For padding*/
-    margin-right: 4px;/*Space between link*/
+    display: inline-block;
+    margin-right: 4px;
+    transition: background-color var(--transition-speed) ease, color var(--transition-speed) ease, border-color var(--transition-speed) ease; /* Added transition*/
 }
+/* Hover and focus states */
 .nav-link:hover, .nav-link:focus {
-    background-color: rgba(0, 123, 255, 0.1); /* Light background on hover/focus */
+    background-color: rgba(0, 123, 255, 0.1);
     border-color: var(--primary-color);
     color: var(--primary-color);
-     outline: none;  /* Remove default focus outline */
+    outline: none;
 }
 
+/* Active link state */
 .nav-link.active {
     background-color: var(--primary-color);
     color: white;
     border-color: var(--primary-color);
 }
 
-
+/* --- Failed Logs Table --- */
 #failedLogsTable {
     width: 100%;
     border-collapse: collapse;
@@ -578,26 +647,30 @@ tr:hover {
 #failedLogsTable td {
     padding: 0.8rem 1rem;
     text-align: left;
-     border-bottom: 1px solid var(--border-color-light);
+    border-bottom: 1px solid var(--border-color-light);
+    transition: border-color var(--transition-speed) ease;
 }
 
 #failedLogsTable th {
-   background-color: var(--table-header-bg-light);
+    background-color: var(--table-header-bg-light);
     color: var(--text-color-light);
-    font-weight: 600; /* Semi-bold */
+    font-weight: 600;
+    transition: background-color var(--transition-speed) ease, color var(--transition-speed) ease;
 }
 
 #failedLogsTable tr:hover {
-    background-color: rgba(0, 123, 255, 0.05);
+     background-color: rgba(0, 123, 255, 0.05);
+    transition: background-color var(--transition-speed) ease; /* Smooth transition */
 }
 .dark-mode #failedLogsTable th {
     background-color: var(--table-header-bg-dark);
     color: var(--text-color-dark);
-     border-bottom: 1px solid var(--border-color-dark);
+    border-bottom: 1px solid var(--border-color-dark);
 }
 .dark-mode #failedLogsTable td{
     border-bottom: 1px solid var(--border-color-dark);
 }
+
 .dark-mode #failedLogsTable tr:hover {
     background-color: rgba(255, 255, 255, 0.08);
 }
