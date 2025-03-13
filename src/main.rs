@@ -369,41 +369,27 @@ async fn main() {
                 let status_map = status_map_clone.lock().await;
                 
                 for dev in locked.iter() {
-                    if let Some(device_status) = status_map.get(&dev.name) {
-                        // Only log if we have 8 or more consecutive failures
-                        let ping_critical = device_status.failed_attempts >= 8;
-                        let http_failed = dev.http_status == Some(false);
-                        
-                        if ping_critical || http_failed {
-                            let log_line = format!(
-                                "{} - {}: Ping: {} (Failed attempts: {}), HTTP: {}, Bandwidth: {}{}\n",
-                                timestamp,
-                                dev.name,
-                                match dev.ping_status {
-                                    Some(true) => "OK",
-                                    Some(false) => "FAIL",
-                                    None => "Unknown",
-                                },
-                                device_status.failed_attempts,
-                                match dev.http_status {
-                                    Some(true) => "OK",
-                                    Some(false) => "FAIL",
-                                    None => "Unknown",
-                                },
-                                match dev.bandwidth_usage {
-                                    Some(val) => format!("{:.2} Mbps", val),
-                                    None => "-".to_string(),
-                                },
-                                ""
-                            );
-                            if let Err(e) = file.write_all(log_line.as_bytes()) {
-                                error!("Failed to write log: {}", e);
-                            }
-                        }
+                    // Format the log entry
+                    let log_entry = format!(
+                        "{} - {}: Ping: {}, HTTP: {}, Bandwidth: {}\n",
+                        timestamp,
+                        dev.name,
+                        dev.ping_status.map_or("N/A", |s| if s { "OK" } else { "FAIL" }),
+                        dev.http_status.map_or("N/A", |s| if s { "OK" } else { "FAIL" }),
+                        dev.bandwidth_usage.map_or("N/A".to_string(), |b| format!("{:.2} Mbps", b))
+                    );
+
+                    // Write the log entry
+                    if let Err(e) = file.write_all(log_entry.as_bytes()) {
+                        error!("Failed to write log entry: {}", e);
                     }
                 }
+                // Ensure the file is flushed
+                if let Err(e) = file.flush() {
+                    error!("Failed to flush log file: {}", e);
+                }
             } else {
-                error!("Cannot open log file for appending.");
+                error!("Failed to open log file for writing");
             }
             sleep(Duration::from_secs(5)).await;
         }
