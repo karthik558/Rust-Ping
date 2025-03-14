@@ -42,7 +42,7 @@ A robust network monitoring tool built with Rust and Rocket framework that provi
 - Cargo package manager
 - Network access for monitoring devices
 
-## Installation
+## Installation (Linux/MacOS)
 
 1. Clone the repository:
 ```sh
@@ -58,6 +58,37 @@ cargo build --release
 cargo run
 ```
 4. Open your web browser and navigate to `http://127.0.0.1:8000/static/index.html` to access the dashboard.
+
+## Installation (Windows)
+1. Clone the repository:
+```sh
+git clone https://github.com/karthik558/Rust-Ping.git &&
+cd Rust-Ping
+```
+2. MinGW-w64 or MSYS2 should be installed. Follow the instructions on the [MSYS2 website](https://www.msys2.org/) to install it.
+
+3. If you have not installed Rust, follow the instructions on the [Rust website](https://www.rust-lang.org/tools/install) to install it.
+
+4. If msys2 is not working, you can download the [MinGW-w64 installer](https://github.com/Vuniverse0/mingwInstaller/releases/download/1.2.1/mingwInstaller.exe) and install it.
+
+5. Download and install it and make sure to add the path to the `bin` folder of MinGW-w64 to your system's PATH environment variable. The path should look something like this:
+```
+C:\Program Files\mingw-w64\x86_64-8.1.0-posix-seh-rt_v6-rev0\mingw64\bin
+```
+6. Open a new command prompt and navigate to the project directory:
+```sh
+cd Rust-Ping
+```
+7. Build the project:
+```sh
+cargo build --release
+```
+8. Run the application:
+```sh
+cargo run
+```
+9. Open your web browser and navigate to `http://127.0.0.1:8000/` to access the dashboard.
+
 
 ## Configuration
 Create/edit the `devices.json` file in the root directory to add or modify devices to be monitored. The configuration file should be in JSON format and include the following fields:
@@ -79,7 +110,7 @@ Create/edit the `devices.json` file in the root directory to add or modify devic
 ```
 
 ## Usage
-1. Access the dashboard at `http://127.0.0.1:8000/static/index.html`
+1. Access the dashboard at `http://127.0.0.1:8000/`
 2. Add devices to monitor by editing the `devices.json` file.
 3. The dashboard will automatically refresh every 5 seconds to display the latest status of the devices.
 4. Click on the device name to view detailed logs and sensor data.
