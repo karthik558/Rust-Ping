@@ -75,19 +75,25 @@ cd Rust-Ping
 ```
 C:\Program Files\mingw-w64\x86_64-8.1.0-posix-seh-rt_v6-rev0\mingw64\bin
 ```
-6. Open a new command prompt and navigate to the project directory:
+
+6. Make sure ```
+rustup default stable-x86_64-pc-windows-gnu``` is set. You can check this by running:
+```sh
+rustup show
+```
+7. Open a new command prompt and navigate to the project directory:
 ```sh
 cd Rust-Ping
 ```
-7. Build the project:
+8. Build the project:
 ```sh
 cargo build --release
 ```
-8. Run the application:
+9. Run the application:
 ```sh
 cargo run
 ```
-9. Open your web browser and navigate to `http://127.0.0.1:8000/` to access the dashboard.
+10. Open your web browser and navigate to `http://127.0.0.1:8000/` to access the dashboard.
 
 
 ## Configuration
