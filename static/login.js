@@ -1,36 +1,49 @@
 // login.js - JavaScript for the login page
 
+// Add this function for password hashing
+async function hashPassword(password) {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(password);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
 // Handle authentication
 async function handleLogin(event) {
-  event.preventDefault();
-  const username = document.getElementById('username').value;
-  const password = document.getElementById('password').value;
+    event.preventDefault();
+    const username = document.getElementById('username').value;
+    const password = document.getElementById('password').value;
 
-  if (username === 'admin' && password === 'admin') {
-    // Set authentication cookie with 2-minute expiration
-    document.cookie = `auth=true;max-age=120;path=/`;
+    // Hash the input password
+    const hashedPassword = await hashPassword(password);
+    
+    // Compare with stored hash from config
+    if (username === AUTH_CONFIG.username && hashedPassword === AUTH_CONFIG.passwordHash) {
+        // Set authentication cookie with 2-minute expiration
+        document.cookie = `auth=true;max-age=120;path=/`;
 
-    // Show welcome overlay
-    const overlay = document.getElementById('welcomeOverlay');
-    overlay.classList.add('show');
+        // Show welcome overlay
+        const overlay = document.getElementById('welcomeOverlay');
+        overlay.classList.add('show');
 
-    // Wait 2 seconds then redirect
-    await new Promise(resolve => setTimeout(resolve, 2000));
+        // Wait 2 seconds then redirect
+        await new Promise(resolve => setTimeout(resolve, 2000));
 
-    // Fade out
-    overlay.style.opacity = '0';
+        // Fade out
+        overlay.style.opacity = '0';
 
-    // Wait for fade out animation
-    await new Promise(resolve => setTimeout(resolve, 300));
+        // Wait for fade out animation
+        await new Promise(resolve => setTimeout(resolve, 300));
 
-    // Redirect to dashboard
-    window.location.href = '/static/index.html';
-  } else {
-    const errorMsg = document.getElementById('errorMessage');
-    errorMsg.textContent = 'Invalid username or password';
-    errorMsg.style.display = 'block';
-  }
-  return false;
+        // Redirect to dashboard
+        window.location.href = '/static/index.html';
+    } else {
+        const errorMsg = document.getElementById('errorMessage');
+        errorMsg.textContent = 'Invalid username or password';
+        errorMsg.style.display = 'block';
+    }
+    return false;
 }
 
 // Check session timeout
@@ -40,8 +53,8 @@ function checkSession() {
   }
 }
 
-// Check authentication status every 2 minutes (120000ms) - Using setInterval
-setInterval(checkSession, 120000);
+// Check authentication status every 2 minutes (1500000ms) - Using setInterval
+setInterval(checkSession, 1500000);
 
 
 // --- Dark Mode Toggle ---

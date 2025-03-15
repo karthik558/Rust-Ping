@@ -14,7 +14,7 @@
     <div class="app-container">
         <header class="header">
              <div class="logo">
-                <a href="/" class="logo-link">
+                <a href="javascript:void(0)" onclick="reloadCurrentPage()" class="logo-link">
                     <img src="logo-dark.png" alt="RustPing Logo" id="logoImage">
                     <span class="app-name">RustPing</span>
                  </a>
@@ -25,6 +25,8 @@
                 <button id="clearFilterButton" class="nav-button"><i class="fas fa-times"></i></button>
                 <a href="log_view.html" class="nav-link" id="logViewButton"><i class="fas fa-file-alt"></i> Live Logs</a>
                 <a href="failed_logs.html" class="nav-link" id="failedLogsButton"><i class="fas fa-exclamation-triangle"></i> Failed Logs</a>
+                <button onclick="resetPassword()" class="nav-button"><i class="fas fa-key fa-fw icon-space"></i> Reset Password</button>
+                <button onclick="logout()" class="nav-button logout-button"><i class="fas fa-sign-out-alt"></i> Logout</button>
             </nav>
             <div class="dark-mode-toggle" onclick="toggleDarkMode()">
                 <i class="fas fa-moon"></i>

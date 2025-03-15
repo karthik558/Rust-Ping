@@ -22,9 +22,10 @@ use tokio::sync::Mutex;
 use std::collections::HashMap;
 use chrono::{NaiveDate, Utc};
 use rocket::response::content::RawText;
-use rocket::http::{Cookie, CookieJar};
+use rocket::http::{Cookie, CookieJar, Status};
 use rocket::request::{self, Request, FromRequest};
 use rocket::outcome::Outcome;
+use serde::Deserialize;
 
 async fn process_logs(start_date_parsed: Option<NaiveDate>, end_date_parsed: Option<NaiveDate>) -> Vec<String> {
     let mut filtered_logs = Vec::new();
@@ -353,6 +354,31 @@ async fn protected_log_view(_auth: Auth) -> Option<NamedFile> {
     NamedFile::open(Path::new("static/log_view.html")).await.ok()
 }
 
+#[get("/static/password-manager.html")]
+async fn protected_password(_auth: Auth) -> Option<NamedFile> {
+    NamedFile::open(Path::new("static/password-manager.html")).await.ok()
+}
+
+#[derive(Deserialize)]
+struct PasswordUpdate {
+    hash: String,
+}
+
+#[post("/update-password", data = "<update>")]
+async fn update_password(_auth: Auth, update: Json<PasswordUpdate>) -> Status {
+    // Update the password hash in config.js
+    let config_path = Path::new("static/config.js");
+    let config_content = format!(
+        "const AUTH_CONFIG = {{\n    username: 'admin',\n    passwordHash: '{}'\n}};",
+        update.hash
+    );
+    
+    match fs::write(config_path, config_content) {
+        Ok(_) => Status::Ok,
+        Err(_) => Status::InternalServerError,
+    }
+}
+
 use env_logger;
 
 #[tokio::main]
@@ -377,7 +403,9 @@ async fn main() {
             get_devices,
             export_log,
             logs_json,
-            failed_logs
+            failed_logs,
+            protected_password,
+            update_password,
         ]);
 
 
