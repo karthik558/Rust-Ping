@@ -16,7 +16,7 @@
         <header class="header">
             <div class="logo">
                 <a href="/" class="logo-link">
-                    <img src="test.png" alt="RustPing Logo" id="logoImage">
+                    <img src="logo-dark.png" alt="RustPing Logo" id="logoImage">
                     <span class="app-name">RustPing</span>
                  </a>
             </div>
@@ -35,7 +35,7 @@
                     <input type="date" id="startDate" placeholder="Start Date" class="filter-input">
                     <input type="date" id="endDate" placeholder="End Date" class="filter-input">
                     <input type="text" id="deviceFilter" placeholder="Filter by device name" class="filter-input">
-                    <button onclick="applyFilters()" class="nav-button"><i class="fas fa-filter"></i></button>  <!-- Changed to nav-button -->
+                    <button onclick="applyFilters()" class="nav-button"><i class="fas fa-filter"></i></button>
                 </div>
 
                 <div class="table-container">
@@ -63,10 +63,12 @@
     </div>
 
     <script>
-
         async function loadFailedLogs() {
             try {
                 const response = await fetch('/logs_json');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
                 const data = await response.json();
 
                 // Filter only failed entries
@@ -106,7 +108,6 @@
                 });
             } catch (error) {
                 console.error('Error loading failed logs:', error);
-                // Consider adding a user-friendly error message here.
             }
         }
 
@@ -131,6 +132,12 @@
             }
         }
 
+        function updateLogo(isDarkMode) {
+          const logo = document.getElementById('logoImage');
+          if (logo) {
+            logo.src = isDarkMode ? 'logo-dark.png' : 'logo-light.png'; // Corrected Logic!
+          }
+        }
 
         function toggleDarkMode() {
             const body = document.body;
@@ -138,22 +145,32 @@
             const darkModeToggle = document.querySelector('.dark-mode-toggle');
             darkModeToggle.classList.toggle('active');
 
-            // Save the current mode to localStorage
+            const icon = darkModeToggle.querySelector('i'); // Get the icon element
+
             const isDarkMode = body.classList.contains('dark-mode');
             localStorage.setItem('darkMode', isDarkMode);
+            updateLogo(isDarkMode); // Call updateLogo here
+             if (isDarkMode) {
+                icon.classList.remove("fa-moon");
+                icon.classList.add("fa-sun");
+            } else {
+                icon.classList.remove("fa-sun");
+                icon.classList.add("fa-moon");
+            }
         }
-        // Load failed logs, and set up dark mode toggle
+
+        // Load failed logs, and set up dark mode on DOMContentLoaded
           document.addEventListener('DOMContentLoaded', () => {
             const savedDarkMode = localStorage.getItem('darkMode');
             if (savedDarkMode === 'true') {
                 document.body.classList.add('dark-mode');
                 document.querySelector('.dark-mode-toggle').classList.add('active');
-                document.querySelector('.dark-mode-toggle i').classList.remove('fa-moon'); // Remove moon
-                document.querySelector('.dark-mode-toggle i').classList.add('fa-sun');   // Add sun
+                document.querySelector('.dark-mode-toggle i').classList.remove('fa-moon');
+                document.querySelector('.dark-mode-toggle i').classList.add('fa-sun');
             }
             loadFailedLogs();
-              // Refresh logs every 30 seconds
             setInterval(loadFailedLogs, 30000);
+            updateLogo(savedDarkMode === 'true'); // Call updateLogo on page load!
         });
 
     </script>

@@ -15,8 +15,8 @@
     <div class="app-container">
     <header class="header">
         <div class="logo">
-                <a href="/" class="logo-link"> 
-                    <img src="test.png" alt="RustPing Logo" id="logoImage">
+                <a href="/" class="logo-link">
+                    <img src="logo-dark.png" alt="RustPing Logo" id="logoImage"> <!- -  Initial Logo (Dark Mode Default - change to logo-light.png if light mode default) - ->
                     <span class="app-name">RustPing</span>
                  </a>
             </div>
@@ -25,7 +25,7 @@
             <a href="/static/failed_logs.html" class="nav-link">Failed Logs</a>
         </nav>
         <div class="dark-mode-toggle" onclick="toggleDarkMode()">
-            <i class="fas fa-moon"></i>
+            <i class="fas fa-moon"></i> <!- - Initial Icon (Moon for Light Mode Default) - ->
         </div>
     </header>
 
@@ -61,10 +61,14 @@
         async function fetchLogs() {
             try {
                 const response = await fetch('/logs_json');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
                 const logs = await response.json();
                 populateLogTable(logs);
             } catch (error) {
                 console.error("Error fetching logs:", error);
+                // Optionally handle error display to user here
             }
         }
 
@@ -108,15 +112,32 @@
             });
         }
 
+        function updateLogo(isDarkMode) {
+          const logo = document.getElementById('logoImage');
+          if (logo) {
+            logo.src = isDarkMode ? 'logo-dark.png' : 'logo-light.png'; // Corrected Logic!
+          }
+        }
+
+
         function toggleDarkMode() {
             const body = document.body;
             body.classList.toggle('dark-mode');
             const darkModeToggle = document.querySelector('.dark-mode-toggle');
             darkModeToggle.classList.toggle('active');
 
-            // Save the current mode to localStorage
+            const icon = darkModeToggle.querySelector('i'); // Get the icon element
+
             const isDarkMode = body.classList.contains('dark-mode');
             localStorage.setItem('darkMode', isDarkMode);
+            updateLogo(isDarkMode); // Call updateLogo here!
+            if (isDarkMode) {
+                icon.classList.remove("fa-moon");
+                icon.classList.add("fa-sun");
+            } else {
+                icon.classList.remove("fa-sun");
+                icon.classList.add("fa-moon");
+            }
         }
 
         // Check for saved dark mode preference and apply
@@ -126,12 +147,13 @@
                 document.body.classList.add('dark-mode');
                 document.querySelector('.dark-mode-toggle').classList.add('active');
                  // Make sure the icon reflects the saved mode
-                document.querySelector('.dark-mode-toggle i').classList.remove('fa-moon'); // Remove moon
-                document.querySelector('.dark-mode-toggle i').classList.add('fa-sun');   // Add sun (or your preferred icon)
+                document.querySelector('.dark-mode-toggle i').classList.remove('fa-moon');
+                document.querySelector('.dark-mode-toggle i').classList.add('fa-sun');
             }
             fetchLogs();
             // Refresh logs every 10 seconds.
             setInterval(fetchLogs, 10000);
+            updateLogo(savedDarkMode === 'true'); // Call updateLogo on page load!
         });
     </script>
 </body>
