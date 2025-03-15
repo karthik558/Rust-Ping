@@ -126,7 +126,7 @@ async fn export_log(
     } else {
         return RawText("Log file not found".to_string());
     }
-
+    
     let lines: Vec<&str> = file_content.lines().collect();
     let mut filtered_lines = Vec::new();
 
@@ -136,84 +136,98 @@ async fn export_log(
     let end_date_parsed: Option<NaiveDate> =
         end_date.and_then(|s| NaiveDate::parse_from_str(s, "%Y-%m-%d").ok());
 
-    // Split and trim device filter names, if provided.
+    // Split and trim device filter names (which could be names or IP addresses).
     let device_filters: Option<Vec<String>> = devices.map(|d| {
         d.split(',')
          .map(|s| s.trim().to_lowercase())
          .collect()
     });
-
+    
     // Process each log line.
     for line in lines {
-        // Skip header lines starting with "//" unless needed for CSV header.
+        // Retain lines starting with "//" (e.g. header lines).
         if line.starts_with("//") {
             filtered_lines.push(line);
             continue;
         }
-        // Split the line to extract timestamp and device name.
         if let Some((timestamp, rest)) = line.split_once(" - ") {
-            // Extract date portion and create a borrowed string slice
-            let date_str = &timestamp[..10];  // Add & here
-            if let Ok(entry_date) = NaiveDate::parse_from_str(date_str, "%Y-%m-%d") {  // date_str is already &str
-
+            // Extract device name and IP.
+            // Assuming rest is like: "Device: Network Switch, 192.168.0.100, Ping: FAIL, HTTP: N/A, Bandwidth: N/A"
+            let parts: Vec<&str> = rest.split(',').collect();
+            if parts.len() >= 2 {
+                let device_part = parts[0].trim(); // "Device: Network Switch"
+                let ip_part = parts[1].trim();       // "192.168.0.100"
+                let device_name = device_part.trim_start_matches("Device:").trim().to_lowercase();
+                let device_ip = ip_part.to_lowercase();
+                
+                // Filter by date.
                 let mut include = true;
-
-                // Apply date filters if present
-                if let Some(start) = start_date_parsed {
-                    if entry_date < start {
-                        include = false;
-                    }
-                }
-                if let Some(end) = end_date_parsed {
-                    if entry_date > end {
-                        include = false;
-                    }
-                }
-                // Extract device name.
-                if let Some((device_name, _)) = rest.split_once(":") {
-                    let device_name_trim = device_name.trim().to_lowercase();
-                    if let Some(ref filters) = device_filters {
-                        let mut found = false;
-                        for f in filters {
-                            if device_name_trim == *f {
-                                found = true;
-                                break;
-                            }
+                // Extract the date part from timestamp (first 10 characters)
+                let date_str = &timestamp[..10];
+                if let Ok(entry_date) = NaiveDate::parse_from_str(date_str, "%Y-%m-%d") {
+                    if let Some(start) = start_date_parsed {
+                        if entry_date < start {
+                            include = false;
                         }
-                        if !found {
+                    }
+                    if let Some(end) = end_date_parsed {
+                        if entry_date > end {
                             include = false;
                         }
                     }
                 }
+                
+                // Apply device/IP filters if provided.
+                if let Some(ref filters) = device_filters {
+                    let mut found = false;
+                    for f in filters {
+                        if device_name.contains(f) || device_ip.contains(f) {
+                            found = true;
+                            break;
+                        }
+                    }
+                    if !found {
+                        include = false;
+                    }
+                }
+
                 if include {
                     filtered_lines.push(line);
                 }
             }
         }
     }
-
+    
+    // Output formatting
     let output = if let Some(fmt) = format {
         if fmt.to_lowercase() == "csv" {
-            // Build CSV header and convert log entries.
-            let mut csv_lines = vec!["Timestamp,Device,Ping,HTTP,Bandwidth".to_string()];
+            // CSV export implementation (e.g., create CSV lines)
+            let mut csv_lines = vec!["Timestamp,Device Name,IP Address,Ping,HTTP,Bandwidth".to_string()];
             for line in filtered_lines {
-                if line.starts_with("//") {
-                    continue;
-                }
+                if line.starts_with("//") { continue; }
                 if let Some((timestamp, rest)) = line.split_once(" - ") {
-                    if let Some((device_part, statuses)) = rest.split_once(": ") {
-                        let cols: Vec<&str> = statuses.split(", ").collect();
-                        let ping = cols.get(0).unwrap_or(&"").replace("Ping: ", "");
-                        let http = cols.get(1).unwrap_or(&"").replace("HTTP: ", "");
-                        let bandwidth = cols.get(2).unwrap_or(&"").replace("Bandwidth: ", "");
-                        let csv_line = format!("{},{},{},{},{}", timestamp, device_part, ping, http, bandwidth);
+                    // Extract device name, IP, and statuses.
+                    let parts: Vec<&str> = rest.split(',').collect();
+                    if parts.len() >= 2 {
+                        let device_name = parts[0].trim().trim_start_matches("Device:").trim();
+                        let device_ip = parts[1].trim();
+                        let ping = parts.get(2)
+                            .map(|s| s.replace("Ping:", "").trim().to_string())
+                            .unwrap_or_else(|| "N/A".to_string());
+                        let http = parts.get(3)
+                            .map(|s| s.replace("HTTP:", "").trim().to_string())
+                            .unwrap_or_else(|| "N/A".to_string());
+                        let bandwidth = parts.get(4)
+                            .map(|s| s.replace("Bandwidth:", "").trim().to_string())
+                            .unwrap_or_else(|| "N/A".to_string());
+                        let csv_line = format!("{},{},{},{},{},{}", timestamp, device_name, device_ip, ping, http, bandwidth);
                         csv_lines.push(csv_line);
                     }
                 }
             }
             csv_lines.join("\n")
         } else {
-            // Default plain text output.
+            // Plain text output.
             filtered_lines.join("\n")
         }
     } else {
