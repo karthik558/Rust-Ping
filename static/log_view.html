@@ -4,8 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>RustPing | Live Logs</title>
-    </title>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
         integrity="sha512-z3gLpd7yknf1YoNbCzqRKc4qyor8gaKU1qmn+CShxbuBusANI9QpRohGBreCFkKxLhei6S9CQXFEbbKuqLg0DA=="
@@ -13,124 +12,127 @@
     <link rel="icon" href="favicon.png" type="image/x-icon">
 </head>
 <body>
-    <div class="header">
+    <div class="app-container">
+    <header class="header">
         <div class="logo">
-        <img src="logo.png" alt="RustPing Logo">
-    </div>
-        <div class="filter-container">
+                <a href="/" class="logo-link"> 
+                    <img src="test.png" alt="RustPing Logo" id="logoImage">
+                    <span class="app-name">RustPing</span>
+                 </a>
+            </div>
+        <nav class="navigation">
             <a href="/static/index.html" class="nav-link">Dashboard</a>
             <a href="/static/failed_logs.html" class="nav-link">Failed Logs</a>
-            <!-- Dark mode toggle -->
-            <div class="dark-mode-toggle" onclick="toggleDarkMode()">
-                <i class="fas fa-moon"></i>
+        </nav>
+        <div class="dark-mode-toggle" onclick="toggleDarkMode()">
+            <i class="fas fa-moon"></i>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <section class="table-section">
+            <div class="table-container">
+                <table id="devices-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Time</th>
+                            <th>Device</th>
+                            <th>Ping</th>
+                            <th>HTTP</th>
+                            <th>Bandwidth</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="logTableBody">
+                        <!-- Log entries will be populated here -->
+                    </tbody>
+                </table>
             </div>
-        </div>
-    </div>
+        </section>
+    </main>
 
-    <div class="dashboard">
-        <div class="table-container">
-            <table id="devices-table">
-                <thead>
-                    <tr>
-                        <th>Date</th>
-                        <th>Time</th>
-                        <th>Device</th>
-                        <th>Ping</th>
-                        <th>HTTP</th>
-                        <th>Bandwidth</th>
-                        <th>Status</th>
-                    </tr>
-                </thead>
-                <tbody id="logTableBody">
-                    <!-- Log entries will be populated here -->
-                </tbody>
-            </table>
-        </div>
+    <footer class="footer">
+        © Copyright 2025. All rights reserved. Developed by KARTHIK LAL.
+    </footer>
     </div>
-
-   <div class="footer">
-    © Copyright 2025 . All rights reserved. Developed by KARTHIK LAL.
-  </div>
 
     <script>
-    async function fetchLogs() {
-      try {
-        const response = await fetch('/logs_json');
-        const logs = await response.json();
-        populateLogTable(logs);
-      } catch (error) {
-        console.error("Error fetching logs:", error);
-      }
-    }
-
-    function populateLogTable(logs) {
-      const tbody = document.getElementById('logTableBody');
-      tbody.innerHTML = "";
-      // logs is expected to be an array of log entry objects.
-      logs.forEach(entry => {
-        const tr = document.createElement('tr');
-        if (entry.down) {
-          tr.classList.add('down'); // Add class for down status
+        async function fetchLogs() {
+            try {
+                const response = await fetch('/logs_json');
+                const logs = await response.json();
+                populateLogTable(logs);
+            } catch (error) {
+                console.error("Error fetching logs:", error);
+            }
         }
-        const dateTd = document.createElement('td');
-        dateTd.textContent = entry.date;
-        tr.appendChild(dateTd);
 
-        const timeTd = document.createElement('td');
-        timeTd.textContent = entry.time;
-        tr.appendChild(timeTd);
+        function populateLogTable(logs) {
+            const tbody = document.getElementById('logTableBody');
+            tbody.innerHTML = "";
+            // logs is expected to be an array of log entry objects.
+            logs.forEach(entry => {
+                const tr = document.createElement('tr');
+                if (entry.down) {
+                    tr.classList.add('down'); // Add class for down status
+                }
+                const addCell = (content) => {
+                    const td = document.createElement('td');
+                    td.textContent = content;
+                    tr.appendChild(td);
+                }
 
-        const deviceTd = document.createElement('td');
-        deviceTd.textContent = entry.device;
-        tr.appendChild(deviceTd);
+                addCell(entry.date);
+                addCell(entry.time);
+                addCell(entry.device);
 
-        const pingTd = document.createElement('td');
-        pingTd.textContent = entry.ping;
-          // Apply status class based on ping value
-        pingTd.classList.add(entry.ping.toLowerCase() === 'fail' ? 'status-fail' : 'status-ok');
-        tr.appendChild(pingTd);
+                const pingTd = document.createElement('td');
+                pingTd.textContent = entry.ping;
+                pingTd.classList.add(entry.ping.toLowerCase() === 'fail' ? 'status-fail' : 'status-ok');
+                tr.appendChild(pingTd);
 
-        const httpTd = document.createElement('td');
-        httpTd.textContent = entry.http;
-         // Apply status class based on http value
-        httpTd.classList.add(entry.http.toLowerCase() === 'fail' ? 'status-fail' : 'status-ok');
-        tr.appendChild(httpTd);
+                const httpTd = document.createElement('td');
+                httpTd.textContent = entry.http;
+                httpTd.classList.add(entry.http.toLowerCase() === 'fail' ? 'status-fail' : 'status-ok');
+                tr.appendChild(httpTd);
 
-        const bandwidthTd = document.createElement('td');
-        bandwidthTd.textContent = entry.bandwidth;
-        tr.appendChild(bandwidthTd);
+                addCell(entry.bandwidth);
 
-        const statusTd = document.createElement('td');
-        statusTd.textContent = entry.down ? "DOWN" : "OK";  // Show "DOWN" or "OK"
-        statusTd.classList.add(entry.down ? 'status-fail' : 'status-ok'); // Use status-fail/ok
-        tr.appendChild(statusTd);
+                const statusTd = document.createElement('td');
+                statusTd.textContent = entry.down ? "DOWN" : "OK";
+                statusTd.classList.add(entry.down ? 'status-fail' : 'status-ok');
+                tr.appendChild(statusTd);
 
-        tbody.appendChild(tr);
-      });
-    }
-
-    function toggleDarkMode() {
-        const body = document.body;
-        body.classList.toggle('dark-mode');
-        const darkModeToggle = document.querySelector('.dark-mode-toggle');
-        darkModeToggle.classList.toggle('active');
-
-          // Save the current mode to localStorage
-        const isDarkMode = body.classList.contains('dark-mode');
-        localStorage.setItem('darkMode', isDarkMode);
-    }
-
-     // Check for saved dark mode preference and apply
-    document.addEventListener('DOMContentLoaded', () => {
-        const savedDarkMode = localStorage.getItem('darkMode');
-        if (savedDarkMode === 'true') {
-            document.body.classList.add('dark-mode');
-            document.querySelector('.dark-mode-toggle').classList.add('active');
+                tbody.appendChild(tr);
+            });
         }
-        fetchLogs();
-        // Refresh logs every 10 seconds.
-        setInterval(fetchLogs, 10000);
-    });
+
+        function toggleDarkMode() {
+            const body = document.body;
+            body.classList.toggle('dark-mode');
+            const darkModeToggle = document.querySelector('.dark-mode-toggle');
+            darkModeToggle.classList.toggle('active');
+
+            // Save the current mode to localStorage
+            const isDarkMode = body.classList.contains('dark-mode');
+            localStorage.setItem('darkMode', isDarkMode);
+        }
+
+        // Check for saved dark mode preference and apply
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedDarkMode = localStorage.getItem('darkMode');
+            if (savedDarkMode === 'true') {
+                document.body.classList.add('dark-mode');
+                document.querySelector('.dark-mode-toggle').classList.add('active');
+                 // Make sure the icon reflects the saved mode
+                document.querySelector('.dark-mode-toggle i').classList.remove('fa-moon'); // Remove moon
+                document.querySelector('.dark-mode-toggle i').classList.add('fa-sun');   // Add sun (or your preferred icon)
+            }
+            fetchLogs();
+            // Refresh logs every 10 seconds.
+            setInterval(fetchLogs, 10000);
+        });
     </script>
 </body>
 </html>

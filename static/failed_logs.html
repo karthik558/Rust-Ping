@@ -4,61 +4,66 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RustPing | Failed Logs</title>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css" />
-     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
         integrity="sha512-z3gLpd7yknf1YoNbCzqRKc4qyor8gaKU1qmn+CShxbuBusANI9QpRohGBreCFkKxLhei6S9CQXFEbbKuqLg0DA=="
         crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link rel="icon" href="favicon.png" type="image/x-icon">
 </head>
 <body>
-    <div class="header">
-        <div class="logo">
-        <img src="logo.png" alt="RustPing Logo">
-    </div>
-        <div class="filter-container">
-            <a href="/static/index.html" class="nav-link">Dashboard</a>
-            <a href="/static/log_view.html" class="nav-link">Live Logs</a> <!-- Removed 'active' class -->
-            <!-- Dark mode toggle -->
-            <div class="dark-mode-toggle" onclick="toggleDarkMode()">
-                <i class="fas fa-moon"></i>
+    <div class="app-container">
+        <header class="header">
+            <div class="logo">
+                <a href="/" class="logo-link">
+                    <img src="test.png" alt="RustPing Logo" id="logoImage">
+                    <span class="app-name">RustPing</span>
+                 </a>
             </div>
-        </div>
+            <nav class="navigation">
+                <a href="/static/index.html" class="nav-link">Dashboard</a>
+                <a href="/static/log_view.html" class="nav-link">Live Logs</a>
+                 <div class="dark-mode-toggle" onclick="toggleDarkMode()">
+                    <i class="fas fa-moon"></i>
+                </div>
+            </nav>
+        </header>
+
+        <main class="main-content">
+            <section class="table-section">
+                <div class="filters">
+                    <input type="date" id="startDate" placeholder="Start Date" class="filter-input">
+                    <input type="date" id="endDate" placeholder="End Date" class="filter-input">
+                    <input type="text" id="deviceFilter" placeholder="Filter by device name" class="filter-input">
+                    <button onclick="applyFilters()" class="nav-button"><i class="fas fa-filter"></i></button>  <!-- Changed to nav-button -->
+                </div>
+
+                <div class="table-container">
+                    <table id="failedLogsTable">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Time</th>
+                                <th>Device</th>
+                                <th>Ping Status</th>
+                                <th>HTTP Status</th>
+                                <th>Bandwidth</th>
+                            </tr>
+                        </thead>
+                        <tbody id="failedLogsBody">
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+
+        <footer class="footer">
+            © Copyright 2025. All rights reserved. Developed by KARTHIK LAL.
+        </footer>
     </div>
 
-    <div class="dashboard">
-        <div class="filters">
-            <input type="date" id="startDate" placeholder="Start Date">
-            <input type="date" id="endDate" placeholder="End Date">
-            <input type="text" id="deviceFilter" placeholder="Filter by device name">
-            <button onclick="applyFilters()">Apply Filters</button>
-        </div>
-        
-        <div class="table-container">
-            <table id="failedLogsTable">
-                <thead>
-                    <tr>
-                        <th>Date</th>
-                        <th>Time</th>
-                        <th>Device</th>
-                        <th>Ping Status</th>
-                        <th>HTTP Status</th>
-                        <th>Bandwidth</th>
-                    </tr>
-                </thead>
-                <tbody id="failedLogsBody">
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    <div class="footer">
-    © Copyright 2025 . All rights reserved. Developed by KARTHIK LAL.
-  </div>
-
-    <script src="script.js"></script>
     <script>
-        // Add this to your existing script.js or include it here
+
         async function loadFailedLogs() {
             try {
                 const response = await fetch('/logs_json');
@@ -76,18 +81,32 @@
                 failedLogs.forEach(log => {
                     const row = document.createElement('tr');
                     row.className = log.down ? 'status-down' : '';
-                    row.innerHTML = `
-                        <td>${log.date}</td>
-                        <td>${log.time}</td>
-                        <td>${log.device}</td>
-                        <td class="${log.ping.toLowerCase() === 'fail' ? 'status-fail' : 'status-ok'}">${log.ping}</td>
-                        <td class="${log.http.toLowerCase() === 'fail' ? 'status-fail' : 'status-ok'}">${log.http}</td>
-                        <td>${log.bandwidth}</td>
-                    `;
+                      const addCell = (content) => {
+                        const td = document.createElement('td');
+                        td.textContent = content;
+                        row.appendChild(td);
+                    }
+
+                    addCell(log.date);
+                    addCell(log.time);
+                    addCell(log.device);
+
+                    const pingTd = document.createElement('td');
+                    pingTd.textContent = log.ping;
+                    pingTd.classList.add(log.ping.toLowerCase() === 'fail' ? 'status-fail' : 'status-ok');
+                    row.appendChild(pingTd);
+
+                    const httpTd = document.createElement('td');
+                    httpTd.textContent = log.http;
+                    httpTd.classList.add(log.http.toLowerCase() === 'fail' ? 'status-fail' : 'status-ok');
+                    row.appendChild(httpTd);
+
+                    addCell(log.bandwidth);
                     tbody.appendChild(row);
                 });
             } catch (error) {
                 console.error('Error loading failed logs:', error);
+                // Consider adding a user-friendly error message here.
             }
         }
 
@@ -112,30 +131,29 @@
             }
         }
 
-        // Load failed logs when page loads
-        document.addEventListener('DOMContentLoaded', loadFailedLogs);
-        // Refresh logs every 30 seconds
-        setInterval(loadFailedLogs, 30000);
 
+        function toggleDarkMode() {
+            const body = document.body;
+            body.classList.toggle('dark-mode');
+            const darkModeToggle = document.querySelector('.dark-mode-toggle');
+            darkModeToggle.classList.toggle('active');
 
-       function toggleDarkMode() {
-          const body = document.body;
-          body.classList.toggle('dark-mode');
-          const darkModeToggle = document.querySelector('.dark-mode-toggle');
-          darkModeToggle.classList.toggle('active');
-
-          // Save the current mode to localStorage
-          const isDarkMode = body.classList.contains('dark-mode');
-          localStorage.setItem('darkMode', isDarkMode);
+            // Save the current mode to localStorage
+            const isDarkMode = body.classList.contains('dark-mode');
+            localStorage.setItem('darkMode', isDarkMode);
         }
-
-        // Check for saved dark mode preference
-        document.addEventListener('DOMContentLoaded', () => {
+        // Load failed logs, and set up dark mode toggle
+          document.addEventListener('DOMContentLoaded', () => {
             const savedDarkMode = localStorage.getItem('darkMode');
             if (savedDarkMode === 'true') {
                 document.body.classList.add('dark-mode');
                 document.querySelector('.dark-mode-toggle').classList.add('active');
+                document.querySelector('.dark-mode-toggle i').classList.remove('fa-moon'); // Remove moon
+                document.querySelector('.dark-mode-toggle i').classList.add('fa-sun');   // Add sun
             }
+            loadFailedLogs();
+              // Refresh logs every 30 seconds
+            setInterval(loadFailedLogs, 30000);
         });
 
     </script>

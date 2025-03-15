@@ -1,55 +1,51 @@
+/* --- Global Variables --- */
 :root {
-    /*  --- Core Colors --- */
-    --primary-color: #007aff; /* Apple's primary blue */
-    --accent-color: #007aff; /* Use primary color as accent (can be different) */
-    --success-color: #34c759; /* Green for success */
-    --warning-color: #ffcc00; /* Yellow for warning */
-    --error-color: #ff3b30; /* Red for error */
+    --primary-color: #24292f;
+    --accent-color: #0969da;
+    --success-color: #2da44e;
+    --warning-color: #d18616;
+    --error-color: #cf222e;
 
     /* --- Light Mode Colors --- */
-    --background-color-light: #f2f2f7; /* Light grey background */
-    --text-color-light: #000000; /* Black text for light mode */
-    --card-background-light: #ffffff; /* White cards */
-    --border-color-light: #c7c7cc; /* Light grey borders */
-    --table-header-bg-light: #e8e8ed;  /* Lighter grey for table headers */
+    --background-color-light: #f6f8fa;
+    --text-color-light: #24292f;
+    --card-background-light: #ffffff;
+    --border-color-light: #d0d7de;
+    --shadow-color-light: rgba(36, 41, 47, 0.1); /* Subtle shadow */
     --input-background-light: #ffffff;
+    --table-header-bg-light: #f6f8fa;
+    --table-row-hover-light: rgba(9, 105, 218, 0.04);
 
     /* --- Dark Mode Colors --- */
-    --background-color-dark: #1c1c1e; /* Dark mode background */
-    --text-color-dark: #ffffff; /* White text for dark mode */
-    --card-background-dark: #2c2c2e; /* Dark grey cards */
-    --border-color-dark: #3a3a3c; /* Dark grey borders */
-    --table-header-bg-dark: #3a3a3c; /* Darker grey for dark mode table headers */
-    --input-background-dark: #3a3a3c;
+    --background-color-dark: #0d1117;
+    --text-color-dark: #c9d1d9;
+    --card-background-dark: #161b22;
+    --border-color-dark: #30363d;
+    --shadow-color-dark: rgba(255, 255, 255, 0.03);
+    --input-background-dark: #21262d;
+    --table-header-bg-dark: #21262d;
+    --table-row-hover-dark: rgba(9, 105, 218, 0.08);
 
     /* --- Common Styles --- */
-    --shadow-color: rgba(0, 0, 0, 0.15); /* Subtle shadow - slightly reduced */
-    --border-radius: 10px; /* Rounded corners */
-    --button-border-radius: 8px; /* Rounded corners for buttons */
-    --transition-speed: 0.3s; /* Consistent transition speed */
-    --button-hover-brightness: 0.85;
-
-    /* --- Chart Colors (for multi-color support) --- */
-    --chart-color-1: #007aff;  /* Primary */
-    --chart-color-2: #34c759;  /* Success */
-    --chart-color-3: #ffcc00;  /* Warning */
-    --chart-color-4: #ff3b30;  /* Error */
-    --chart-color-5: #5ac8fa;  /* Light Blue */
-    --chart-color-6: #ff9500;  /* Orange */
-     /* Add more chart colors as needed */
+    --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+    --border-radius: 6px;
+    --transition-speed: 0.2s;
+    --box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+    --spacing-unit: 1rem;
 }
 
+/* --- Base Styles --- */
+*, *::before, *::after {
+    box-sizing: border-box;
+}
 
 body {
-    font-family: 'SF Pro Text', -apple-system, BlinkMacSystemFont, 'Roboto', sans-serif;
+    font-family: var(--font-family);
     margin: 0;
     background-color: var(--background-color-light);
     color: var(--text-color-light);
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh;
-    padding: 1rem;
-    transition: background-color var(--transition-speed) ease, color var(--transition-speed) ease;
+    transition: background-color var(--transition-speed), color var(--transition-speed);
+    line-height: 1.5;
 }
 
 body.dark-mode {
@@ -57,244 +53,280 @@ body.dark-mode {
     color: var(--text-color-dark);
 }
 
+.app-container {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
 /* --- Header --- */
 .header {
+    background-color: var(--card-background-light);
+    box-shadow: var(--box-shadow);
+    padding: calc(var(--spacing-unit) / 2) var(--spacing-unit);
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 1rem;
-    background-color: var(--card-background-light);
-    box-shadow: 0 2px 4px var(--shadow-color); /* More pronounced, yet subtle shadow */
     position: sticky;
     top: 0;
-    z-index: 3;
-    border-radius: var(--border-radius);
-    margin-bottom: 1rem;
-    transition: background-color var(--transition-speed) ease, box-shadow var(--transition-speed) ease; /* Smooth transitions */
+    z-index: 100;
+    transition: background-color var(--transition-speed), box-shadow var(--transition-speed);
+    border-bottom: 1px solid var(--border-color-light); /* Subtle border */
 }
 
 .dark-mode .header {
     background-color: var(--card-background-dark);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4); /* Shadow for dark mode */
+    box-shadow: 0 1px 2px rgba(255, 255, 255, 0.03);
+    border-bottom: 1px solid var(--border-color-dark);
 }
 
-.header h1 {
-    font-size: 1.5rem;
+.logo {
+    display: flex;
+    align-items: center;
+}
+.logo-link {
+    display: flex; 
+    align-items: center;
+    text-decoration: none; 
+}
+
+.logo img {
+    height: 32px;
+    margin-right: 0.5rem;
+}
+
+.app-name {
     font-weight: 600;
+    font-size: 1.1rem;
     color: var(--primary-color);
-    margin: 0;
-    transition: color var(--transition-speed) ease;
 }
 
-.header .logo {
-    display: flex;
-    align-items: center;
-}
-
-.header .logo img {
-    height: 40px;
-    width: auto;
-    margin-right: 20px;
-}
-
-/* --- Filter Container --- */
-.filter-container {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-#filterInput {
-    padding: 8px 12px;
-    border: 1px solid var(--border-color-light);
-    border-radius: var(--button-border-radius);
-    font-size: 14px;
-    margin-right: 0;
-    transition: border-color var(--transition-speed) ease, box-shadow var(--transition-speed) ease, background-color var(--transition-speed) ease;
-    outline: none;
-    background-color: var(--input-background-light);
-}
-
-#filterInput:focus {
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
-}
-
-.dark-mode #filterInput {
-    background-color: var(--input-background-dark);
+/* Apply text-color-dark only in dark mode */
+.dark-mode .app-name {
     color: var(--text-color-dark);
-    border: 1px solid var(--border-color-dark);
-}
-.dark-mode #filterInput:focus {
-   box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.5);
 }
 
-/* --- Buttons --- */
-#filterButton, #clearFilterButton, #logViewButton, #failedLogsButton {
-    padding: 8px 16px;
-    background-color: var(--primary-color);
-    color: white;
-    border: none;
-    border-radius: var(--button-border-radius);
-    cursor: pointer;
-    font-size: 14px;
-    transition: background-color var(--transition-speed) ease, filter var(--transition-speed) ease; /* Added filter transition */
-    outline: none;
+/* --- Navigation --- */
+.navigation {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background-color: var(--card-background-light);
+    border-radius: var(--border-radius);
+    padding: 0.5rem;
+    box-shadow: var(--box-shadow);
+     transition: background-color var(--transition-speed), box-shadow var(--transition-speed);
+}
+.dark-mode .navigation{
+     background-color: var(--card-background-dark);
+      box-shadow: 0 1px 2px rgba(255, 255, 255, 0.03);
+}
+
+.navigation .nav-button,
+.navigation .nav-link,
+.navigation .filter-input {
+    margin: 0;
+}
+
+/* --- Button Styles --- */
+.nav-button,
+.button {
+    background-color: transparent;
+    border: 1px solid var(--border-color-light);
+    border-radius: var(--border-radius);
+    padding: 0.375rem 0.75rem;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 6px;
-}
-/* Specific button colors */
-#clearFilterButton {
-    background-color: var(--error-color);
-}
-
-#logViewButton {
-    background-color: var(--success-color);
-}
-
-#failedLogsButton {
-    background-color: var(--error-color);
-}
-
-#filterButton:hover, #clearFilterButton:hover, #logViewButton:hover, #failedLogsButton:hover{
-    filter: brightness(var(--button-hover-brightness));
-}
-#failedLogsButton:disabled {
-    background-color: #ccc;
-    cursor: not-allowed;
-}
-#failedLogsButton:disabled:hover {
-    filter: none; /* Remove hover effect when disabled */
-}
-
-/* --- Dark Mode Toggle --- */
-.dark-mode-toggle {
     cursor: pointer;
-    z-index: 100;
-    background-color: var(--card-background-light);
-    border-radius: 50%;
-    box-shadow: 0 2px 4px var(--shadow-color); /* More pronounced shadow */
-    width: 40px;
-    height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: transform var(--transition-speed) ease, background-color var(--transition-speed) ease, box-shadow var(--transition-speed) ease; /* Smooth transitions */
-}
-
-.dark-mode .dark-mode-toggle {
-    background-color: var(--card-background-dark);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
-}
-
-.dark-mode-toggle i {
+    transition: background-color var(--transition-speed), color var(--transition-speed), border-color var(--transition-speed);
     color: var(--text-color-light);
-    font-size: 1.25rem;
-    transition: transform var(--transition-speed) ease, color var(--transition-speed) ease; /* Smooth icon transition */
+    font-size: 0.875rem;
+    line-height: 1;
 }
 
-.dark-mode .dark-mode-toggle i {
+.nav-button i {
+     margin: 0;
+}
+
+.nav-button:hover,
+.nav-link:hover,
+.button:hover {
+     background-color: var(--table-row-hover-light);
+    border-color: var(--border-color-light);
+    color: var(--accent-color); 
+}
+
+.dark-mode .nav-button {
+    color: var(--text-color-dark);
+    border-color: var(--border-color-dark);
+}
+
+.dark-mode .nav-button:hover,
+.dark-mode .nav-link:hover,
+.dark-mode .button:hover {
+     background-color: var(--table-row-hover-dark);
+    border-color: var(--border-color-dark);
+    color: var(--accent-color);
+}
+
+.primary-button {
+    background-color: var(--accent-color);
+    color: #fff;
+    border-color: var(--accent-color);
+    font-weight: 500;
+}
+
+.primary-button:hover {
+    background-color: #0559b3;
+}
+
+/* --- Filter Input --- */
+.filter-input {
+    padding: 0.375rem 0.75rem;
+    border: 1px solid var(--border-color-light);
+    border-radius: var(--border-radius);
+    transition: border-color var(--transition-speed), box-shadow var(--transition-speed);
+    background-color: var(--input-background-light);
+    color: var(--text-color-light);
+    outline: none;
+    flex-grow: 1;
+    max-width: 250px;
+    font-size: 0.875rem;
+}
+
+.dark-mode .filter-input {
+    border-color: var(--border-color-dark);
+    background-color: var(--input-background-dark);
     color: var(--text-color-dark);
 }
-/* Rotate icon on active */
-.dark-mode-toggle.active i {
-    transform: rotate(180deg);
+
+.filter-input:focus {
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 3px rgba(9, 105, 218, 0.3); 
 }
 
-/* --- Dashboard --- */
-.dashboard {
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: 1rem;
+.dark-mode .filter-input:focus {
+    box-shadow: 0 0 0 3px rgba(9, 105, 218, 0.5);
+}
+
+/* --- Nav Links --- */
+.nav-link {
+    color: var(--accent-color);
+    text-decoration: none;
+    padding: 0.375rem 0.75rem;
+    border-radius: var(--border-radius);
+    transition: background-color var(--transition-speed), color var(--transition-speed);
+    display: inline-block;
+    font-size: 0.875rem;
+}
+
+.nav-link.active {
+    background-color: var(--accent-color);
+    color: white;
+    border-color: var(--accent-color);
+}
+
+/* --- Main Content --- */
+.main-content {
+    padding: var(--spacing-unit);
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    flex: 1;
+}
+
+/* --- Table Section --- */
+.table-section {
     width: 100%;
-    box-sizing: border-box;
 }
 
-/* --- Table Container --- */
 .table-container {
     overflow-x: auto;
     border-radius: var(--border-radius);
-    box-shadow: 0 2px 4px var(--shadow-color);
-    margin-bottom: 2rem;
-    transition: box-shadow var(--transition-speed) ease;
+    box-shadow: var(--box-shadow);
+    transition: box-shadow var(--transition-speed);
+    border: 1px solid var(--border-color-light);
 }
 
 .dark-mode .table-container {
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 1px 2px rgba(255, 255, 255, 0.03);
+    border-color: var(--border-color-dark);
 }
 
-/* --- Table --- */
-table {
+#devices-table,
+#failedLogsTable {
     width: 100%;
     border-collapse: collapse;
-    table-layout: fixed; /* Important for consistent column widths */
+    white-space: nowrap;
 }
 
-th, td {
-    padding: 0.8rem 1rem;
+#devices-table th,
+#devices-table td,
+#failedLogsTable th,
+#failedLogsTable td {
+    padding: 0.5rem 0.75rem;
     text-align: left;
     border-bottom: 1px solid var(--border-color-light);
-    transition: border-color var(--transition-speed) ease; /* Add transition to border */
 }
 
-th {
+#devices-table th,
+#failedLogsTable th{
     background-color: var(--table-header-bg-light);
-    color: var(--text-color-light);
+    transition: background-color var(--transition-speed);
     font-weight: 600;
     position: sticky;
     top: 0;
-    z-index: 2;
-    transition: background-color var(--transition-speed) ease, color var(--transition-speed) ease; /* Smooth transitions */
+    z-index: 1;
 }
 
-.dark-mode th {
+.dark-mode #devices-table th,
+.dark-mode #failedLogsTable th{
     background-color: var(--table-header-bg-dark);
-    color: var(--text-color-dark);
     border-bottom: 1px solid var(--border-color-dark);
-}
-.dark-mode td {
-    border-bottom: 1px solid var(--border-color-dark);
-}
-/* Row Hover Effect */
-tr:hover {
-    background-color: rgba(0, 123, 255, 0.05);
-    transition: background-color var(--transition-speed) ease;
 }
 
-.dark-mode tr:hover {
-    background-color: rgba(255, 255, 255, 0.08);
+.dark-mode #devices-table td,
+.dark-mode #failedLogsTable td {
+    border-bottom: 1px solid var(--border-color-dark);
+}
+
+#devices-table tbody tr:hover,
+#failedLogsTable tbody tr:hover{
+    background-color: var(--table-row-hover-light);
+    transition: background-color var(--transition-speed);
+}
+
+.dark-mode #devices-table tbody tr:hover,
+.dark-mode #failedLogsTable tbody tr:hover {
+    background-color: var(--table-row-hover-dark);
 }
 
 /* --- Sensor Box --- */
 .sensor-box {
     display: inline-block;
-    padding: 0.2rem 0.5rem;
+    padding: 0.125rem 0.5rem;
     margin: 0.125rem;
-    background: rgba(0, 123, 255, 0.1);
-    border: 1px solid rgba(0, 123, 255, 0.3);
-    border-radius: 6px;
-    font-size: 0.7rem;
-    color: var(--primary-color);
+    background-color: rgba(9, 105, 218, 0.1);
+    border: 1px solid rgba(9, 105, 218, 0.3);
+    border-radius: 3px;
+    font-size: 0.65rem;
+    color: var(--accent-color);
     white-space: nowrap;
-     /* Add transitions */
-    transition: background-color var(--transition-speed) ease, border-color var(--transition-speed) ease, color var(--transition-speed) ease;
+    transition: background-color var(--transition-speed), border-color var(--transition-speed), color var(--transition-speed);
 }
 
 .dark-mode .sensor-box {
-    background: rgba(0, 123, 255, 0.2);
-    border: 1px solid rgba(0, 123, 255, 0.5);
-    color: var(--accent-color);
+    background-color: rgba(9, 105, 218, 0.2);
+    border-color: rgba(9, 105, 218, 0.5);
 }
 
-/* --- Status Dot --- */
 .status-dot {
     display: inline-block;
-    width: 10px;
-    height: 10px;
+    width: 8px;
+    height: 8px;
     border-radius: 50%;
-    margin-right: 0.4rem;
+    margin-right: 0.25rem;
     vertical-align: middle;
 }
 
@@ -302,300 +334,189 @@ tr:hover {
 .status-dot.red    { background: var(--error-color); }
 .status-dot.yellow { background: var(--warning-color); }
 
-/* --- Charts --- */
-.charts {
-    display: flex;
-    flex-wrap: wrap; /* Allow charts to wrap on smaller screens */
+
+/* --- Charts Section --- */
+.charts-section {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     gap: 1rem;
-    justify-content: space-between;
 }
 
-.chart-box {
-    flex: 1 1 calc(50% - 1rem);  /*  2 charts per row, accounting for gap */
-    min-width: 300px; /* Minimum width to prevent overly small charts */
-    background: var(--card-background-light);
+.chart-card {
+    background-color: var(--card-background-light);
     border-radius: var(--border-radius);
-    box-shadow: 0 2px 4px var(--shadow-color);
+    box-shadow: var(--box-shadow);
+    transition: box-shadow var(--transition-speed);
     padding: 1rem;
-    box-sizing: border-box;
-    transition: background-color var(--transition-speed) ease, box-shadow var(--transition-speed) ease; /* Smooth transitions */
+    border: 1px solid var(--border-color-light);
 }
 
-.dark-mode .chart-box {
-    background: var(--card-background-dark);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+.dark-mode .chart-card {
+    background-color: var(--card-background-dark);
+    box-shadow: 0 1px 2px rgba(255, 255, 255, 0.03);
+    border-color: var(--border-color-dark);
+}
+
+.chart-title {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: var(--text-color-light);
+    transition: color var(--transition-speed);
+}
+
+.dark-mode .chart-title {
+    color: var(--text-color-dark);
 }
 
 .chart-container {
-    width: 100%;
     height: 250px;
     position: relative;
+}
+
+/* --- Log Export Section --- */
+.log-export-section {}
+
+.card {
+    background-color: var(--card-background-light);
+    box-shadow: var(--box-shadow);
+    transition: box-shadow var(--transition-speed);
+    padding: var(--spacing-unit);
+    border-radius: var(--border-radius);
+    border: 1px solid var(--border-color-light);
+}
+
+.dark-mode .card {
+    background-color: var(--card-background-dark);
+    box-shadow: 0 1px 2px rgba(255, 255, 255, 0.03);
+    border-color: var(--border-color-dark);
+}
+
+.section-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    text-align: center;
+    color: var(--text-color-light);
+    transition: color var(--transition-speed);
+}
+
+.dark-mode .section-title {
+    color: var(--text-color-dark);
+}
+
+.form-group {
+    margin-bottom: 1rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.25rem;
+    font-weight: 500;
+    color: var(--text-color-light);
+    transition: color var(--transition-speed);
+    font-size: 0.875rem;
+}
+
+.dark-mode .form-group label {
+    color: var(--text-color-dark);
+}
+
+.form-group input[type="text"],
+.form-group input[type="date"],
+.form-group select {
+    width: 100%;
+    padding: 0.375rem 0.75rem;
+    border: 1px solid var(--border-color-light);
+    border-radius: var(--border-radius);
+    background-color: var(--input-background-light);
+    color: var(--text-color-light);
+    transition: border-color var(--transition-speed), box-shadow var(--transition-speed);
+    outline: none;
+    font-size: 0.875rem;
+}
+
+.dark-mode .form-group input[type="text"],
+.dark-mode .form-group input[type="date"],
+.dark-mode .form-group select {
+    border-color: var(--border-color-dark);
+    background-color: var(--input-background-dark);
+    color: var(--text-color-dark);
+}
+
+.form-group input[type="text"]:focus,
+.form-group input[type="date"]:focus,
+.form-group select:focus {
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 3px rgba(9, 105, 218, 0.3);
+}
+
+.dark-mode .form-group input[type="text"]:focus,
+.dark-mode .form-group input[type="date"]:focus,
+.dark-mode .form-group select:focus {
+    box-shadow: 0 0 0 3px rgba(9, 105, 218, 0.5);
+}
+
+/* --- Dark Mode Toggle --- */
+.dark-mode-toggle {
+    cursor: pointer;
+    background-color: transparent;
+    border: 1px solid var(--border-color-light);
+    border-radius: var(--border-radius);
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color var(--transition-speed), color var(--transition-speed), border-color var(--transition-speed);
+    color: var(--text-color-light);
+    font-size: 1rem;
+}
+
+.dark-mode-toggle i {
+    color: var(--text-color-light);
+     margin: 0;
+}
+
+.dark-mode-toggle:hover {
+    background-color: var(--table-row-hover-light);
+     border-color: var(--border-color-light);
+      color: var(--accent-color);
+}
+
+.dark-mode .dark-mode-toggle:hover {
+    background-color: var(--table-row-hover-dark);
+    border-color: var(--border-color-dark);
+    color: var(--accent-color);
+}
+
+.dark-mode .dark-mode-toggle {
+    background-color: transparent;
+    border-color: var(--border-color-dark);
+}
+
+.dark-mode .dark-mode-toggle i {
+    color: var(--text-color-dark);
+}
+
+.dark-mode-toggle.active i {
+    transform: rotate(180deg);
 }
 
 /* --- Footer --- */
 .footer {
     text-align: center;
-    font-size: 0.8rem;
-    color: #8e8e93;
-    margin-top: 2rem;
-    padding: 1rem 0;
+    padding: var(--spacing-unit);
+    color: #6e7681;
+    margin-top: auto;
     border-top: 1px solid var(--border-color-light);
-     transition: border-color var(--transition-speed) ease, color var(--transition-speed) ease;
+    transition: border-top var(--transition-speed);
+    font-size: 0.875rem;
 }
 
 .dark-mode .footer {
-    color: #8e8e93;
     border-top: 1px solid var(--border-color-dark);
-}
-
-/* --- Media Queries --- */
-/* Mobile Devices */
-@media (max-width: 768px) {
-    .charts {
-        flex-direction: column;  /* Stack charts vertically */
-    }
-
-    .chart-box {
-        flex-basis: 100%; /* Full width */
-    }
-
-    th, td {
-        padding: 0.6rem 0.4rem;
-        font-size: 0.85rem;
-    }
-
-    /* Hide less important columns on small screens */
-    th:nth-child(3), td:nth-child(3),
-    th:nth-child(5), td:nth-child(5) {
-        display: none;
-    }
-
-    .header {
-        flex-direction: column;
-        align-items: stretch;
-        padding: 0.5rem;
-    }
-
-    .header h1 {
-        margin-bottom: 0.5rem;
-        text-align: center;
-    }
-
-    .filter-container {
-        width: 100%;
-        justify-content: center;
-        flex-wrap: wrap; /* Wrap filter elements */
-    }
-
-    .dark-mode-toggle {
-        position: absolute;
-        top: 0.5rem;
-        right: 0.5rem;
-    }
-       .filter-container {
-        flex-wrap: wrap;
-    }
-     #filterInput {
-        flex: 1 1 100%;
-        margin-bottom: 0.5rem;
-    }
-
-    .filter-container button {
-        flex: 1 1 auto;
-    }
-}
-
-/* Tablets */
-@media (max-width: 1024px) and (min-width: 769px) {
-    .chart-box {
-        flex-basis: calc(50% - 1rem); /* Two charts per row */
-    }
-}
-
-/* --- Card --- */
-.card {
-    background-color: var(--card-background-light);
-    border-radius: var(--border-radius);
-    box-shadow: 0 2px 4px var(--shadow-color);
-    padding: 1rem;
-    margin-top: 1rem;
-    transition: background-color var(--transition-speed) ease, box-shadow var(--transition-speed) ease;
-}
-
-.dark-mode .card {
-    background-color: var(--card-background-dark);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
-}
-
-/* --- Log Export Section --- */
-.log-export h2 {
-    margin-top: 0;
-    color: var(--primary-color);
-    font-size: 1.25rem;
-    font-weight: 600;
-    text-align: center;
-    transition: color var(--transition-speed) ease; /* Smooth transition */
-}
-
-.log-export form {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-}
-
-.log-export .form-group {
-    display: flex;
-    flex-direction: column;
-}
-
-.log-export .form-group label {
-    font-weight: 500;
-    margin-bottom: 0.25rem;
-    font-size: 0.9rem;
-    color: var(--text-color-light);
-    transition: color var(--transition-speed) ease; /* Smooth transition */
-
-}
-
-.dark-mode .log-export .form-group label {
-    color: var(--text-color-dark);
-}
-.log-export .form-group input,
-.log-export .form-group select {
-  padding: 8px 12px;
-  border: 1px solid var(--border-color-light);
-  border-radius: var(--button-border-radius);
-  font-size: 14px;
-  transition: border-color var(--transition-speed) ease, box-shadow var(--transition-speed) ease, background-color var(--transition-speed) ease; /*Added transition*/
-  outline: none;
-  background-color: var(--input-background-light);
-  color: var(--text-color-light);
-}
-
-.dark-mode .log-export .form-group input, .dark-mode .log-export .form-group select {
-     background-color: var(--input-background-dark);
-      color: var(--text-color-dark);
-      border-color: var(--border-color-dark);
-}
-
-.log-export .form-group input:focus,
-.log-export .form-group select:focus {
-  border-color: var(--primary-color);
-  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
-}
-.dark-mode .log-export .form-group input:focus,
-.dark-mode .log-export .form-group select:focus {
-  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.5);
-}
-.log-export .form-group small {
-    font-size: 0.75rem;
-    color: #8e8e93;
-}
-/* --- Action Button (for forms) --- */
-.action-button {
-    padding: 8px 16px;
-    background-color: var(--primary-color);
-    color: #fff;
-    border: none;
-    border-radius: var(--button-border-radius);
-    cursor: pointer;
-    font-size: 14px;
-    transition: background-color var(--transition-speed) ease, filter var(--transition-speed) ease; /* Add filter transition */
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-}
-
-.action-button:hover {
-    filter: brightness(var(--button-hover-brightness));
-}
-
-/* --- Form Messages --- */
-.log-export .form-group .error-message {
-    color: var(--error-color);
-    font-size: 0.75rem;
-    margin-top: 0.25rem;
-}
-
-.log-export .form-group .success-message {
-    color: var(--success-color);
-    font-size: 0.75rem;
-    margin-top: 0.25rem;
-}
-
-.log-export .form-group .info-message {
-    color: var(--text-color-light);
-    font-size: 0.75rem;
-    margin-top: 0.25rem;
-    transition: color var(--transition-speed) ease; /* Add transition */
-}
-.dark-mode .log-export .form-group .info-message {
-     color: var(--text-color-dark);
-}
-
-.log-export .form-group .info-message a {
-    color: var(--primary-color);
-    text-decoration: underline;
-}
-
-/* --- Filters (for logs page) --- */
-.filters {
-    margin: 20px 0;
-    display: flex;
-    gap: 10px;
-    align-items: center;
-}
-
-.filters input {
-    padding: 8px;
-    border: 1px solid var(--border-color-light);
-    border-radius: var(--button-border-radius);
-    font-size: 14px;
-    transition: border-color var(--transition-speed) ease, box-shadow var(--transition-speed) ease, background-color var(--transition-speed) ease;
-    outline: none;
-    background-color: var(--input-background-light);
-}
-
-.dark-mode .filters input {
-    background-color: var(--input-background-dark);
-    color: var(--text-color-dark);
-    border: 1px solid var(--border-color-dark);
-}
-
-.filters input:focus {
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
-}
-
-.dark-mode .filters input:focus {
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.5);
-}
-.filters button {
-    padding: 8px 16px;
-    background-color: var(--primary-color);
-    color: white;
-    border: none;
-    border-radius: var(--button-border-radius);
-    cursor: pointer;
-    font-size: 14px;
-    transition: background-color var(--transition-speed) ease, filter var(--transition-speed) ease; /* Smooth transitions */
-    outline: none;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-}
-
-.filters button:hover {
-   filter: brightness(var(--button-hover-brightness));
-}
-
-/* --- Logs Container (for logs page) --- */
-.logs-container {
-    margin-top: 20px;
-    overflow-x: auto;
+    color: #8b949e;
 }
 
 /* --- Status Indicators (for logs) --- */
@@ -608,69 +529,170 @@ tr:hover {
     color: var(--success-color);
 }
 
-/* --- Navigation Links --- */
-.nav-link {
-    padding: 8px 16px;
-    background-color: transparent;
-    color: var(--primary-color);
-    border: 1px solid transparent;
-    border-radius: var(--button-border-radius);
-    text-decoration: none;
-    transition: background-color 0.2s, color 0.2s, border-color 0.2s;
-    display: inline-block;
-    margin-right: 4px;
-    transition: background-color var(--transition-speed) ease, color var(--transition-speed) ease, border-color var(--transition-speed) ease; /* Added transition*/
-}
-/* Hover and focus states */
-.nav-link:hover, .nav-link:focus {
-    background-color: rgba(0, 123, 255, 0.1);
-    border-color: var(--primary-color);
-    color: var(--primary-color);
-    outline: none;
-}
 
-/* Active link state */
-.nav-link.active {
-    background-color: var(--primary-color);
-    color: white;
-    border-color: var(--primary-color);
-}
-
-/* --- Failed Logs Table --- */
-#failedLogsTable {
-    width: 100%;
-    border-collapse: collapse;
+.logs-container {
     margin-top: 20px;
+    overflow-x: auto;
 }
 
-#failedLogsTable th,
-#failedLogsTable td {
-    padding: 0.8rem 1rem;
-    text-align: left;
-    border-bottom: 1px solid var(--border-color-light);
-    transition: border-color var(--transition-speed) ease;
+/* --- Filters (for logs page) --- */
+.filters {
+    margin-bottom: 1rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
 }
 
-#failedLogsTable th {
-    background-color: var(--table-header-bg-light);
+/* Styles for the date inputs */
+.filters input[type="date"] {
+    padding: 0.375rem 0.75rem;
+    border: 1px solid var(--border-color-light);
+    border-radius: var(--border-radius);
+    background-color: var(--input-background-light);
     color: var(--text-color-light);
-    font-weight: 600;
-    transition: background-color var(--transition-speed) ease, color var(--transition-speed) ease;
+    font-family: var(--font-family);
+    font-size: 0.875rem;
+    outline: none;
+    margin-right: 0.5rem;
+    transition: border-color var(--transition-speed), box-shadow var(--transition-speed);
+    max-width: 250px;
+    flex-grow: 1;
 }
 
-#failedLogsTable tr:hover {
-     background-color: rgba(0, 123, 255, 0.05);
-    transition: background-color var(--transition-speed) ease; /* Smooth transition */
-}
-.dark-mode #failedLogsTable th {
-    background-color: var(--table-header-bg-dark);
+.dark-mode .filters input[type="date"] {
+    border-color: var(--border-color-dark);
+    background-color: var(--input-background-dark);
     color: var(--text-color-dark);
-    border-bottom: 1px solid var(--border-color-dark);
-}
-.dark-mode #failedLogsTable td{
-    border-bottom: 1px solid var(--border-color-dark);
 }
 
-.dark-mode #failedLogsTable tr:hover {
-    background-color: rgba(255, 255, 255, 0.08);
+.filters input[type="date"]:focus {
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 3px rgba(9, 105, 218, 0.3);
+}
+
+.dark-mode .filters input[type="date"]:focus {
+    box-shadow: 0 0 0 3px rgba(9, 105, 218, 0.5);
+}
+
+/* Remove default date picker styling (cross-browser) */
+.filters input[type="date"]::-webkit-calendar-picker-indicator {
+     cursor: pointer;
+     filter: brightness(80%);
+}
+
+.filters input[type="date"]::-moz-calendar-picker-indicator {
+    /*  Firefox styling */
+     cursor: pointer;
+    color: var(--text-color-light);
+}
+
+/* Custom dark mode date picker icon */
+.dark-mode .filters input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(1) brightness(150%);
+}
+
+/* --- Responsive Adjustments --- */
+@media (max-width: 768px) {
+    .header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .navigation {
+        width: 100%;
+        justify-content: space-around;
+        flex-wrap: wrap;
+        padding: 0.5rem 0;
+    }
+
+    .navigation a {
+        margin-top: 10px;
+    }
+
+    .filter-input {
+        margin-right: 0;
+        margin-bottom: 0.5rem;
+        max-width: none;
+    }
+
+    .nav-button {
+        padding: 0.375rem 0.5rem;
+    }
+
+    /* Hide less important columns on small screens */
+    #devices-table th:nth-child(3),
+    #devices-table td:nth-child(3),
+    #devices-table th:nth-child(5),
+    #devices-table td:nth-child(5) {
+        display: none;
+    }
+
+    #failedLogsTable th:nth-child(3),
+    #failedLogsTable td:nth-child(3),
+    #failedLogsTable th:nth-child(5),
+    #failedLogsTable td:nth-child(5) {
+        display: none;
+    }
+}
+
+.form-group input[type="date"] {
+    width: 100%;
+    padding: 0.375rem 0.75rem;
+    border: 1px solid var(--border-color-light);
+    border-radius: var(--border-radius);
+    background-color: var(--input-background-light);
+    color: var(--text-color-light);
+    transition: border-color var(--transition-speed), box-shadow var(--transition-speed);
+    outline: none;
+    font-size: 0.875rem;
+    font-family: var(--font-family);
+}
+
+.dark-mode .form-group input[type="date"] {
+    border-color: var(--border-color-dark);
+    background-color: var(--input-background-dark);
+    color: var(--text-color-dark);
+}
+
+.form-group input[type="date"]:focus {
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 3px rgba(9, 105, 218, 0.3);
+}
+
+.dark-mode .form-group input[type="date"]:focus {
+    box-shadow: 0 0 0 3px rgba(9, 105, 218, 0.5);
+}
+
+/* Remove default date picker styling and add custom styles */
+.form-group input[type="date"]::-webkit-calendar-picker-indicator {
+    cursor: pointer;
+    filter: brightness(80%);
+    border-radius: 3px;
+    padding: 0.2rem;
+}
+
+.dark-mode .form-group input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(1) brightness(150%);
+}
+
+/* Firefox specific styling */
+.form-group input[type="date"]::-moz-calendar-picker-indicator {
+    cursor: pointer;
+    color: var(--text-color-light);
+    border-radius: var(--border-radius);
+    padding: 0.2rem;
+}
+
+.dark-mode .form-group input[type="date"]::-moz-calendar-picker-indicator {
+     color: var(--text-color-dark);
+}
+
+/* Hover effect */
+.form-group input[type="date"]::-webkit-calendar-picker-indicator:hover {
+    background-color: var(--table-row-hover-light);
+}
+
+.dark-mode .form-group input[type="date"]::-webkit-calendar-picker-indicator:hover {
+   background-color: var(--table-row-hover-dark);
 }
