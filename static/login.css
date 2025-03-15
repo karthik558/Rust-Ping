@@ -1,0 +1,351 @@
+/* login.css - Styles specifically for the login page */
+
+:root {
+  /*  Reuse variables from your main styles.css.  Excellent! */
+  --primary-color: #24292f;
+  --accent-color: #0969da;
+  --error-color: #cf222e;
+
+  /* Light Mode */
+  --background-color-light: #f6f8fa;
+  --text-color-light: #24292f;
+  --card-background-light: #ffffff;
+  --border-color-light: #d0d7de;
+  --input-background-light: #ffffff;
+  --shadow-color-light: rgba(36, 41, 47, 0.1);
+
+  /* Dark Mode */
+  --background-color-dark: #0d1117;
+  --text-color-dark: #c9d1d9;
+  --card-background-dark: #161b22;
+  --border-color-dark: #30363d;
+  --input-background-dark: #21262d;
+  --shadow-color-dark: rgba(255, 255, 255, 0.03);
+
+  /* Common */
+  --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+  --border-radius: 6px;
+  --transition-speed: 0.2s;
+  --box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  --spacing-unit: 1rem;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-family);
+  margin: 0;
+  background-color: var(--background-color-light);
+  color: var(--text-color-light);
+  transition: background-color var(--transition-speed), color var(--transition-speed);
+  min-height: 100vh; /* Use viewport height */
+}
+
+body.dark-mode {
+  background-color: var(--background-color-dark);
+  color: var(--text-color-dark);
+}
+
+/* --- App Container --- */
+.app-container {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+/* --- Header --- */
+.header {
+  background-color: var(--card-background-light);
+  box-shadow: var(--box-shadow);
+  padding: calc(var(--spacing-unit) / 2) var(--spacing-unit);
+  display: flex;
+  justify-content: space-between; /* Space logo and dark mode toggle */
+  align-items: center;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  transition: background-color var(--transition-speed), box-shadow var(--transition-speed);
+  border-bottom: 1px solid var(--border-color-light);
+}
+
+.dark-mode .header {
+  background-color: var(--card-background-dark);
+  box-shadow: 0 1px 2px rgba(255, 255, 255, 0.03);
+  border-bottom: 1px solid var(--border-color-dark);
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+}
+
+.logo-link {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+}
+
+.logo img {
+  height: 32px;
+  margin-right: 0.5rem;
+}
+
+.app-name {
+  font-weight: 600;
+  font-size: 1.1rem;
+  color: var(--primary-color);
+  transition: color var(--transition-speed);
+}
+
+.dark-mode .app-name {
+    color: var(--text-color-dark);
+}
+/* --- Main Content --- */
+.main-content {
+  padding: var(--spacing-unit);
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Center the login container */
+  justify-content: center; /* Center vertically */
+  flex: 1; /* Grow to fill available space */
+}
+
+/* --- Login Container --- */
+.login-container {
+  width: 100%;
+  max-width: 420px;
+  padding: 2.5rem;
+  background-color: var(--card-background-light);
+  border: 1px solid var(--border-color-light);
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+  transition: background-color var(--transition-speed), border-color var(--transition-speed), box-shadow var(--transition-speed);
+}
+
+.dark-mode .login-container {
+  background-color: var(--card-background-dark);
+  border-color: var(--border-color-dark);
+  box-shadow: var(--shadow-color-dark);
+}
+
+/* --- Login Title --- */
+.login-title {
+  text-align: center;
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+  color: var(--text-color-light);
+  transition: color var(--transition-speed);
+}
+
+.dark-mode .login-title {
+  color: var(--text-color-dark);
+}
+
+/* --- Form --- */
+.form-group {
+  margin-bottom: 1.25rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.375rem;
+  font-weight: 500;
+  color: var(--text-color-light);
+  transition: color var(--transition-speed);
+  font-size: 0.9rem;
+}
+
+.dark-mode .form-group label {
+  color: var(--text-color-dark);
+}
+
+.form-group input {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--border-color-light);
+  border-radius: var(--border-radius);
+  background-color: var(--input-background-light);
+  color: var(--text-color-light);
+  font-family: var(--font-family);
+  font-size: 1rem;
+  outline: none;
+  transition: border-color var(--transition-speed), background-color var(--transition-speed), color var(--transition-speed), box-shadow var(--transition-speed);
+}
+
+.dark-mode .form-group input {
+  border-color: var(--border-color-dark);
+  background-color: var(--input-background-dark);
+  color: var(--text-color-dark);
+}
+
+.form-group input:focus {
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 3px rgba(9, 105, 218, 0.3);
+}
+
+.dark-mode .form-group input:focus {
+  box-shadow: 0 0 0 3px rgba(9, 105, 218, 0.5);
+}
+
+/* --- Button --- */
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 1rem;
+  border: 1px solid transparent;
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  transition: background-color var(--transition-speed), color var(--transition-speed), border-color var(--transition-speed);
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.primary-button {
+  background-color: var(--accent-color);
+  color: #fff;
+  border-color: var(--accent-color);
+  font-weight: 500;
+  width: 100%;
+}
+
+.primary-button:hover {
+  background-color: #0559b3;
+  border-color: #0559b3;
+}
+
+/* --- Error Message --- */
+.error-message {
+    color: var(--error-color);
+    margin-top: 1rem;
+    text-align: center;
+    display: none;
+    font-size: 0.9rem;
+}
+
+/* --- Dark Mode Toggle --- */
+.dark-mode-toggle {
+  cursor: pointer;
+  background-color: transparent;
+  border: none; /* Remove border */
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color var(--transition-speed); /* Only transition color */
+  color: var(--text-color-light);
+  font-size: 1rem;
+
+}
+
+.dark-mode-toggle i {
+    margin: 0;
+  color: var(--text-color-light);
+  transition: color var(--transition-speed); /* Transition icon color */
+}
+
+.dark-mode .dark-mode-toggle {
+  color: var(--text-color-dark); /* Set text color directly */
+}
+
+.dark-mode .dark-mode-toggle i {
+  color: var(--text-color-dark);
+}
+
+/* --- Forgot Password --- */
+.forgot-password-container {
+    text-align: right; /* Align to the right */
+    margin-top: 0.5rem; /* Space it from the button */
+}
+
+.forgot-password-link {
+    color: var(--accent-color);
+    text-decoration: none;
+    font-size: 0.875rem;
+     transition: color var(--transition-speed);
+}
+
+.dark-mode  .forgot-password-link{
+     color: var(--accent-color);
+}
+.forgot-password-link:hover {
+    text-decoration: underline;
+}
+
+/* --- Footer --- */
+.footer {
+    text-align: center;
+    padding: var(--spacing-unit);
+    color: #6e7681;
+    margin-top: auto;
+    border-top: 1px solid var(--border-color-light);
+    transition: border-top var(--transition-speed);
+    font-size: 0.875rem;
+}
+
+.dark-mode .footer {
+    border-top: 1px solid var(--border-color-dark);
+    color: #8b949e;
+}
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .login-container {
+    padding: 1.5rem;
+    max-width: 90%;
+  }
+  .header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+     .logo {
+        margin-bottom: 0.5rem; /* Add spacing below logo on mobile */
+    }
+}
+
+/* --- Welcome Overlay --- */
+.welcome-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(var(--accent-color-rgb, 9, 105, 218), 0.9);
+    display: none; /* Hidden by default */
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    opacity: 0;
+    transition: opacity var(--transition-speed) ease-in-out;
+    backdrop-filter: blur(8px); /* Increased blur slightly */
+    -webkit-backdrop-filter: blur(8px);
+}
+
+.welcome-content {
+    display: flex;
+    flex-direction: column; /* Stack items vertically */
+    align-items: center;
+    gap: calc(var(--spacing-unit) / 2); /* Reduced gap */
+    color: #fff;
+    font-size: 1.4rem; /* Slightly larger font */
+    text-align: center;
+}
+
+.welcome-content img {
+    width: 70px; /*  Slightly smaller image */
+    height: auto;
+    border-radius: var(--border-radius);
+}
+
+.welcome-overlay.show {
+    display: flex;
+    opacity: 1;
+}
+
+/* Dark mode adjustments */
+body.dark-mode .welcome-overlay {
+    background-color: rgba(var(--accent-color-rgb, 9, 105, 218), 0.9);
+}

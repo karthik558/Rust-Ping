@@ -22,6 +22,9 @@ use tokio::sync::Mutex;
 use std::collections::HashMap;
 use chrono::{NaiveDate, Utc};
 use rocket::response::content::RawText;
+use rocket::http::{Cookie, CookieJar};
+use rocket::request::{self, Request, FromRequest};
+use rocket::outcome::Outcome;
 
 async fn process_logs(start_date_parsed: Option<NaiveDate>, end_date_parsed: Option<NaiveDate>) -> Vec<String> {
     let mut filtered_logs = Vec::new();
@@ -75,18 +78,16 @@ type SharedDevices = Arc<Mutex<Vec<Device>>>;
 
 static LOG_FILE: &str = "rustPing_running.log";
 
-// Serve the dashboard page.  We NO LONGER need this separate route.
-// #[get("/")]
-// async fn index() -> Option<NamedFile> {
-//     NamedFile::open(Path::new("static/index.html")).await.ok()
-// }
-
 // Redirect / to /static/index.html (this is now optional, but good for clarity)
 #[get("/")]
 async fn index() -> Redirect {
-    Redirect::to("/static/index.html")
+    Redirect::to("/static/login.html")
 }
 
+#[get("/login")]
+async fn login_page() -> Option<NamedFile> {
+    NamedFile::open(Path::new("static/login.html")).await.ok()
+}
 
 // API to add a device.
 #[post("/add_device", data = "<device>")]
@@ -103,7 +104,7 @@ async fn add_device(device: Json<Device>, devices: &State<SharedDevices>) -> &'s
 
 // API to get the list of devices.
 #[get("/devices")]
-async fn get_devices(devices: &State<SharedDevices>) -> Json<Vec<Device>> {
+async fn get_devices(_auth: Auth, devices: &State<SharedDevices>) -> Json<Vec<Device>> {
     let devices_locked = devices.lock().await;
     Json(devices_locked.clone())
 }
@@ -311,6 +312,47 @@ async fn failed_logs() -> Option<NamedFile> {
     NamedFile::open(Path::new("static/failed_logs.html")).await.ok()
 }
 
+// Add this struct for authentication
+struct Auth;
+
+#[derive(Debug)]
+enum AuthError {
+    Missing,
+    Invalid,
+}
+
+// Implement request guard for Auth
+#[rocket::async_trait]
+impl<'r> FromRequest<'r> for Auth {
+    type Error = AuthError;
+
+    async fn from_request(request: &'r Request<'_>) -> request::Outcome<Self, Self::Error> {
+        let cookies = request.cookies();
+        
+        match cookies.get("auth") {
+            Some(cookie) if cookie.value() == "true" => Outcome::Success(Auth),
+            Some(_) => Outcome::Error((rocket::http::Status::Unauthorized, AuthError::Invalid)),
+            None => Outcome::Error((rocket::http::Status::Unauthorized, AuthError::Missing))
+        }
+    }
+}
+
+// Protected routes
+#[get("/static/index.html")]
+async fn protected_index(_auth: Auth) -> Option<NamedFile> {
+    NamedFile::open(Path::new("static/index.html")).await.ok()
+}
+
+#[get("/static/failed_logs.html")]
+async fn protected_failed_logs(_auth: Auth) -> Option<NamedFile> {
+    NamedFile::open(Path::new("static/failed_logs.html")).await.ok()
+}
+
+#[get("/static/log_view.html")]
+async fn protected_log_view(_auth: Auth) -> Option<NamedFile> {
+    NamedFile::open(Path::new("static/log_view.html")).await.ok()
+}
+
 use env_logger;
 
 #[tokio::main]
@@ -324,10 +366,19 @@ async fn main() {
     let devices: SharedDevices = Arc::new(Mutex::new(Vec::new()));
     let rocket_instance = rocket::build()
         .manage(devices.clone())
-        // Mount FileServer with rank 2.  This is the crucial part.
         .mount("/static", FileServer::from(relative!("static")).rank(2))
-        // Mount other routes.  The redirect has a higher rank (default is 0), so it takes precedence.
-        .mount("/", routes![index, add_device, get_devices, export_log, logs_json, failed_logs]);
+        .mount("/", routes![
+            index,
+            login_page,
+            protected_index,
+            protected_failed_logs,
+            protected_log_view,
+            add_device,
+            get_devices,
+            export_log,
+            logs_json,
+            failed_logs
+        ]);
 
 
     add_devices_from_file("devices.json", devices.clone()).await;

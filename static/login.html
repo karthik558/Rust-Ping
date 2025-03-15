@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RustPing | Login</title>
+    <link rel="stylesheet" href="login.css">
+    <link rel="icon" href="favicon.png" type="image/x-icon">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" integrity="sha512-z3gLpd7yknf1YoNbCzqRKc4qyor8gaKU1qmn+CShxbuBusANI9QpRohGBreCFkKxLhei6S9CQXFEbbKuqLg0DA==" crossorigin="anonymous" referrerpolicy="no-referrer">
+</head>
+<body>
+    <div class="app-container"> <!-- Added app-container for header/footer -->
+        <header class="header">
+            <div class="logo">
+                <a href="/" class="logo-link">
+                    <img src="logo-light.png" alt="RustPing Logo" id="logoImage">
+                    <span class="app-name">RustPing</span>
+                </a>
+            </div>
+            <div class="dark-mode-toggle" onclick="toggleDarkMode()">
+                <i class="fas fa-moon"></i>
+            </div>
+        </header>
+
+        <main class="main-content"> <!-- Added for consistent padding -->
+            <div class="login-container">
+                <h2 class="login-title">Login to your account</h2>
+
+                <form id="loginForm" onsubmit="return handleLogin(event)">
+                    <div class="form-group">
+                        <label for="username">Username</label>
+                        <input type="text" id="username" required autocomplete="username">
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <input type="password" id="password" required autocomplete="current-password">
+                    </div>
+
+                    <button type="submit" class="button primary-button">Login</button>
+
+                    <div class="forgot-password-container">
+                         <a href="#" id="forgotPasswordLink" class="forgot-password-link">Forgot Password?</a>
+                    </div>
+                </form>
+
+                <div id="errorMessage" class="error-message"></div>
+
+                <div id="welcomeOverlay" class="welcome-overlay">
+                    <div class="welcome-content">
+                        <img src="logo-dark.png" alt="RustPing Logo" id="welcomeLogoImage">
+                        <h1>Welcome to RustPing</h1>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+
+        <footer class="footer">
+            © Copyright 2025. All rights reserved. Developed by KARTHIK LAL.
+        </footer>
+    </div>
+
+    <script src="login.js"></script>
+</body>
+</html>
