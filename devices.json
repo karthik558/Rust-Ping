@@ -1,22 +1,26 @@
 [
   {
+    "category": "Firewall",
     "name": "Firewall",
     "ip": "192.168.1.1",
     "sensors": ["Ping"]
   },
   {
+    "category": "DNS Server",
     "name": "Google DNS",
     "ip": "8.8.8.8",
     "sensors": ["Ping", "Http", "Https"],
     "http_path": "http://google.com"
   },
   {
+    "category": "DNS Server",
     "name": "Cloudflare DNS",
     "ip": "1.1.1.1",
     "sensors": ["Ping", "Https", "Http"],
     "http_path": "http://google.com"
   },
   {
+    "category": "Network Equipment",
     "name": "Network Switch",
     "ip": "192.168.0.100",
     "sensors": ["Ping"]

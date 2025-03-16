@@ -9,17 +9,18 @@ pub enum SensorType {
     Bandwidth,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Device {
     pub name: String,
     pub ip: String,
+    pub category: String,  // Add this field
     pub sensors: Vec<SensorType>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub http_path: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub ping_status: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub http_status: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub bandwidth_usage: Option<f64>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub http_path: Option<String>
 }

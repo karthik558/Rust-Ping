@@ -4,6 +4,7 @@ let devicePieChart;
 let devicesData = [];
 let isFetching = false;
 let sortOrder = {}; // Keep track of sorting
+let currentCategory = 'all';
 
 async function fetchDevices() {
   if (isFetching) return;
@@ -40,12 +41,62 @@ function renderData(devices) {
   }
 }
 
+// Add this function to generate category buttons
+function updateCategoryButtons(devices) {
+  const categories = [...new Set(devices.map(device => device.category))];
+  const buttonContainer = document.querySelector('.category-buttons');
+  
+  // Only update category buttons if they don't exist
+  if (buttonContainer.children.length <= 1) { // Account for "All Devices" button
+      // Keep the existing "All Devices" button
+      const existingButtons = buttonContainer.innerHTML;
+      
+      // Add category-specific buttons
+      const newButtons = categories.map(category => `
+          <button class="category-btn" data-category="${category}">${category}</button>
+      `).join('');
+      
+      buttonContainer.innerHTML = existingButtons + newButtons;
+
+      // Add click handlers to all buttons
+      buttonContainer.querySelectorAll('.category-btn').forEach(button => {
+          button.onclick = () => filterByCategory(button.getAttribute('data-category'));
+      });
+  }
+}
+
+// Update the category filter function
+function filterByCategory(category) {
+  currentCategory = category;
+  const buttons = document.querySelectorAll('.category-btn');
+  
+  // Update button states
+  buttons.forEach(btn => {
+      if (btn.getAttribute('data-category') === category) {
+          btn.classList.add('active');
+      } else {
+          btn.classList.remove('active');
+      }
+  });
+
+  // Filter table rows
+  const rows = document.querySelectorAll('#devices-table tbody tr');
+  rows.forEach(row => {
+      if (category === 'all' || row.getAttribute('data-category') === category) {
+          row.style.display = '';
+      } else {
+          row.style.display = 'none';
+      }
+  });
+}
+
 function updateTable(devices) {
   const tbody = document.querySelector("#devices-table tbody");
   tbody.innerHTML = ""; // Clear existing rows
 
   devices.forEach(device => {
     const tr = document.createElement("tr");
+    tr.setAttribute('data-category', device.category);
     tr.addEventListener("click", () => {
       // Handle row click:  Update selected device and pie chart.
       if (selectedDevice && selectedDevice.name === device.name) {
@@ -109,6 +160,9 @@ function updateTable(devices) {
       tr.classList.add("selected-row");
     }
   });
+
+  updateCategoryButtons(devices);
+  filterByCategory(currentCategory); // Reapply category filter
 }
 
 function updateBandwidthChart(devices) {
@@ -456,6 +510,12 @@ document.addEventListener("DOMContentLoaded", () => {
   fetchDevices();
   setInterval(fetchDevices, 15000); // Fetch data every 15 seconds
   updateSortIcons();
+  
+  // Initialize category filter
+  const allDevicesBtn = document.querySelector('[data-category="all"]');
+  if (allDevicesBtn) {
+      allDevicesBtn.onclick = () => filterByCategory('all');
+  }
 });
 
 // Check authentication and setup inactivity detection

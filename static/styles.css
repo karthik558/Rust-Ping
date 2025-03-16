@@ -728,3 +728,69 @@ body.dark-mode {
 .icon-space {
     padding-right: 1.2rem;
 }
+
+/* --- Category Filter Styles --- */
+.category-filter {
+    margin-bottom: 1rem;
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    align-items: center;
+    padding: 1rem; 
+    background-color: var(--card-background-light);
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    transition: background-color var(--transition-speed), box-shadow var(--transition-speed);
+    border: 1px solid var(--border-color-light);
+}
+
+.dark-mode .category-filter {
+    background-color: var(--card-background-dark);
+    box-shadow: var(--shadow-color-dark);
+    border-color: var(--border-color-dark);
+}
+
+.category-buttons {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.category-btn {
+    padding: 0.375rem 0.75rem;
+    border: 1px solid var(--border-color-light);
+    border-radius: var(--border-radius);
+    background-color: transparent;
+    color: var(--text-color-light);
+    cursor: pointer;
+    transition: background-color var(--transition-speed), color var(--transition-speed), border-color var(--transition-speed);
+    font-size: 0.875rem;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center; 
+    justify-content: center;
+
+}
+
+.dark-mode .category-btn {
+    color: var(--text-color-dark);
+    border-color: var(--border-color-dark);
+}
+
+.category-btn:hover {
+    background-color: var(--table-row-hover-light);
+    border-color: var(--border-color-light);
+    color: var(--accent-color);
+}
+
+.dark-mode .category-btn:hover {
+    background-color: var(--table-row-hover-dark);
+    border-color: var(--border-color-dark);
+    color: var(--accent-color);
+}
+
+.category-btn.active {
+    background-color: var(--accent-color);
+    color: white;
+    border-color: var(--accent-color);
+}
