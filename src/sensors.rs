@@ -4,70 +4,57 @@ use reqwest;
 use tokio::time::{sleep, Duration};
 
 pub async fn monitor_ping(ip: &str) -> bool {
-    debug!("Attempting to ping {} (10 requests)", ip);
+    debug!("Pinging {}", ip);
     
     let mut success_count = 0;
-    
-    // Send 10 ping requests
-    for attempt in 1..=10 {
-        debug!("Ping attempt {} of 10 for {}", attempt, ip);
-        
+    let attempts = 3; // Try 3 times before deciding status
+
+    for i in 1..=attempts {
         let output = if cfg!(target_os = "macos") || cfg!(target_os = "linux") {
             Command::new("ping")
                 .arg("-c")
                 .arg("1")
-                .arg("-W")
-                .arg("2")
+                .arg("-t")  // Use -t for macOS timeout
+                .arg("2")   // 2 second timeout
                 .arg(ip)
                 .output()
         } else {
             Command::new("ping")
                 .arg("-n")
                 .arg("1")
+                .arg("-w")
+                .arg("2000")
                 .arg(ip)
                 .output()
         };
 
         match output {
             Ok(output) => {
-                let stdout = String::from_utf8_lossy(&output.stdout);
-                let stderr = String::from_utf8_lossy(&output.stderr);
-                
-                debug!("Ping stdout: {}", stdout);
-                if !stderr.is_empty() {
-                    debug!("Ping stderr: {}", stderr);
-                }
-
-                let ping_success = if cfg!(target_os = "macos") || cfg!(target_os = "linux") {
-                    output.status.success() && !stdout.contains("100.0% packet loss")
-                } else {
-                    output.status.success() && stdout.contains("bytes=")
-                };
-
-                if ping_success {
+                if output.status.success() {
                     success_count += 1;
+                    debug!("Ping attempt {} successful for {}", i, ip);
+                } else {
+                    debug!("Ping attempt {} failed for {}", i, ip);
                 }
             }
             Err(e) => {
-                error!("Error executing ping command for {}: {}", ip, e);
+                error!("Ping attempt {} error for {}: {}", i, ip, e);
             }
         }
 
-        // Add a small delay between pings to prevent flooding
+        // Short delay between attempts
         sleep(Duration::from_millis(200)).await;
     }
 
-    // Calculate success rate (consider up if 70% or more pings successful)
-    let success_rate = (success_count as f32 / 10.0) * 100.0;
-    let is_up = success_rate >= 70.0;
-
-    if is_up {
-        info!("Device {} is UP ({}% success rate)", ip, success_rate);
+    // Consider it up if more than 50% attempts succeeded
+    let status = success_count > attempts / 2;
+    if status {
+        info!("Ping UP for {} ({}/{} successful)", ip, success_count, attempts);
     } else {
-        error!("Device {} is DOWN ({}% success rate)", ip, success_rate);
+        error!("Ping DOWN for {} ({}/{} failed)", ip, attempts - success_count, attempts);
     }
-
-    is_up
+    
+    status
 }
 
 pub async fn monitor_http(url: &str) -> bool {

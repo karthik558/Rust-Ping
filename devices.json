@@ -1,13 +1,5 @@
 [
   {
-    "name": "Firewall",
-    "ip": "192.168.1.1",
-    "category": "Firewall",
-    "sensors": [
-      "Ping"
-    ]
-  },
-  {
     "name": "Google DNS",
     "ip": "8.8.8.8",
     "category": "DNS Server",
@@ -30,14 +22,6 @@
     "http_path": "http://google.com"
   },
   {
-    "name": "Network Switch",
-    "ip": "192.168.0.100",
-    "category": "Network Equipment",
-    "sensors": [
-      "Ping"
-    ]
-  },
-  {
     "name": "Antivirus Server",
     "ip": "8.8.4.4",
     "category": "Antivirus Server",
@@ -47,5 +31,59 @@
       "Https"
     ],
     "http_path": "https://google.in"
+  },
+  {
+    "name": "Google DNS [1]",
+    "ip": "4.2.2.2",
+    "category": "DNS Server",
+    "sensors": [
+      "Ping",
+      "Http"
+    ],
+    "http_path": "https://google.com"
+  },
+  {
+    "name": "Adguard Server [1]",
+    "ip": "94.140.15.16",
+    "category": "DNS Server",
+    "sensors": [
+      "Ping",
+      "Http"
+    ],
+    "http_path": "https://google.com"
+  },
+  {
+    "name": "Adguard Server [2]",
+    "ip": "94.140.14.15",
+    "category": "DNS Server",
+    "sensors": [
+      "Ping",
+      "Http"
+    ],
+    "http_path": "https://google.com"
+  },
+  {
+    "name": "Cisco Virtual Controller",
+    "ip": "8.8.8.8",
+    "category": "Access Point",
+    "sensors": [
+      "Ping"
+    ]
+  },
+  {
+    "name": "NAS",
+    "ip": "8.8.4.4",
+    "category": "Storage Server",
+    "sensors": [
+      "Ping"
+    ]
+  },
+  {
+    "name": "CCTV Server",
+    "ip": "8.8.8.8",
+    "category": "CCTV",
+    "sensors": [
+      "Ping"
+    ]
   }
 ]

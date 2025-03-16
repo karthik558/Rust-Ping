@@ -8,7 +8,7 @@ use rocket::{get, post, delete, routes, State, response::Redirect, catch, catche
 use rocket::serde::json::Json;
 use rocket::fs::{NamedFile, FileServer, relative};
 use models::{Device as ModelDevice, SensorType};
-use log::{info, error, debug};
+use log::{info, error};
 use sensors::{monitor_ping, monitor_http};
 use std::fs::{self, OpenOptions};
 use std::io::{Read, Write};
@@ -60,16 +60,33 @@ async fn process_logs(start_date_parsed: Option<NaiveDate>, end_date_parsed: Opt
 // Define a struct to track device status.
 #[derive(Debug, Clone)]
 struct DeviceStatus {
-    failed_attempts: u32,
-    last_status: bool,
+    ping_status: Option<bool>,
+    http_status: Option<bool>,
+    bandwidth_usage: Option<f64>,
+    last_update: DateTime<Local>,
+    changed_at: DateTime<Local>,
 }
 
 impl DeviceStatus {
     fn new() -> Self {
-        DeviceStatus {
-            failed_attempts: 0,
-            last_status: true, // Assume initially up
+        let now = Local::now();
+        Self {
+            ping_status: None,
+            http_status: None,
+            bandwidth_usage: None,
+            last_update: now,
+            changed_at: now,
         }
+    }
+
+    fn update_ping(&mut self, new_status: bool) -> bool {
+        let changed = self.ping_status != Some(new_status);
+        if changed {
+            self.ping_status = Some(new_status);
+            self.changed_at = Local::now();
+        }
+        self.last_update = Local::now();
+        changed
     }
 }
 
@@ -567,82 +584,107 @@ async fn main() {
     let status_map_clone = device_status_map.clone();
 
     tokio::spawn(async move {
+        let mut device_statuses: HashMap<String, DeviceStatus> = HashMap::new();
+        
         loop {
             let devices_to_monitor: Vec<ModelDevice> = {
                 let locked = devices_clone.lock().await;
                 locked.clone()
             };
 
-            for dev in devices_to_monitor {
-                let mut updated_dev = dev.clone();
-                
-                // Always perform ping check regardless of sensor configuration
-                match monitor_ping(&updated_dev.ip).await {
-                    true => {
-                        debug!("Ping successful for {} ({})", updated_dev.name, updated_dev.ip);
-                        updated_dev.ping_status = Some(true);
-                    },
-                    false => {
-                        error!("Ping failed for {} ({})", updated_dev.name, updated_dev.ip);
-                        updated_dev.ping_status = Some(false);
-                    }
-                }
+            let mut status_changed = false;
 
-                // HTTP and bandwidth checks only if configured
-                if updated_dev.sensors.contains(&SensorType::Http) || updated_dev.sensors.contains(&SensorType::Https) {
-                    if let Some(ref url) = updated_dev.http_path {
-                        updated_dev.http_status = Some(monitor_http(url).await);
-                        updated_dev.bandwidth_usage = Some(rand::thread_rng().gen_range(10.0..1000.0));
-                    }
+            for dev in devices_to_monitor {
+                let status = device_statuses.entry(dev.ip.clone())
+                    .or_insert_with(DeviceStatus::new);
+                
+                // First check ping
+                let ping_result = monitor_ping(&dev.ip).await;
+                if status.update_ping(ping_result) {
+                    status_changed = true;
                 }
 
                 // Update device in shared state
                 let mut devices_locked = devices_clone.lock().await;
-                if let Some(existing_dev) = devices_locked.iter_mut().find(|d| d.ip == updated_dev.ip) {
-                    existing_dev.ping_status = updated_dev.ping_status;
-                    existing_dev.http_status = updated_dev.http_status;
-                    existing_dev.bandwidth_usage = updated_dev.bandwidth_usage;
+                if let Some(device) = devices_locked.iter_mut().find(|d| d.ip == dev.ip) {
+                    device.ping_status = status.ping_status;
+                    
+                    // Check HTTP and bandwidth if configured and ping is successful
+                    if device.ping_status == Some(true) {
+                        if device.sensors.contains(&SensorType::Http) || 
+                           device.sensors.contains(&SensorType::Https) {
+                            if let Some(ref url) = device.http_path {
+                                match monitor_http(url).await {
+                                    true => {
+                                        device.http_status = Some(true);
+                                        // Simulate bandwidth measurement only for successful HTTP connections
+                                        device.bandwidth_usage = Some(rand::thread_rng().gen_range(10.0..1000.0));
+                                        status_changed = true;
+                                    },
+                                    false => {
+                                        device.http_status = Some(false);
+                                        device.bandwidth_usage = None;
+                                        status_changed = true;
+                                    }
+                                }
+                            }
+                        }
+                    } else {
+                        // If ping fails, mark HTTP as down and clear bandwidth
+                        if device.sensors.contains(&SensorType::Http) || 
+                           device.sensors.contains(&SensorType::Https) {
+                            device.http_status = Some(false);
+                            device.bandwidth_usage = None;
+                            status_changed = true;
+                        }
+                    }
                 }
             }
 
-            // Write to log file
-            if let Ok(mut file) = OpenOptions::new().append(true).create(true).open(LOG_FILE) {
-                let now: DateTime<Local> = Local::now();
-                let timestamp = now.format("%Y-%m-%d %H:%M:%S").to_string();
-                let today = now.format("%Y-%m-%d").to_string();
-
-                // Write header if needed
-                if last_log_date != today {
-                    if let Err(e) = writeln!(file, "// {}", today) {
-                        error!("Failed to write log header: {}", e);
+            // Write to log file when status changes
+            if status_changed {
+                if let Ok(mut file) = OpenOptions::new().append(true).create(true).open(LOG_FILE) {
+                    let now = Local::now();
+                    let devices_locked = devices_clone.lock().await;
+                    
+                    for dev in devices_locked.iter() {
+                        let status = device_statuses.get(&dev.ip)
+                            .cloned()
+                            .unwrap_or_else(DeviceStatus::new);
+                        
+                        // Format HTTP status and bandwidth based on sensor configuration
+                        let http_status = if dev.sensors.contains(&SensorType::Http) || 
+                                           dev.sensors.contains(&SensorType::Https) {
+                            dev.http_status.map_or("FAIL", |s| if s { "OK" } else { "FAIL" })
+                        } else {
+                            "N/A"
+                        };
+                        
+                        let bandwidth = if (dev.sensors.contains(&SensorType::Http) || 
+                                         dev.sensors.contains(&SensorType::Https)) && 
+                                         dev.http_status == Some(true) {
+                            dev.bandwidth_usage.map_or("N/A".to_string(), |b| format!("{:.2} Mbps", b))
+                        } else {
+                            "N/A".to_string()
+                        };
+                        
+                        let log_entry = format!(
+                            "{} - {} ({}): Ping: {}, HTTP: {}, Bandwidth: {}\n",
+                            now.format("%Y-%m-%d %H:%M:%S"),
+                            dev.name,
+                            dev.ip,
+                            status.ping_status.map_or("N/A", |s| if s { "OK" } else { "FAIL" }),
+                            http_status,
+                            bandwidth
+                        );
+                        
+                        if let Err(e) = file.write_all(log_entry.as_bytes()) {
+                            error!("Failed to write log entry: {}", e);
+                        }
                     }
-                    last_log_date = today;
-                }
-
-                // Log each device status
-                let devices_locked = devices_clone.lock().await;
-                for dev in devices_locked.iter() {
-                    let log_entry = format!(
-                        "{} - {} ({}): Ping: {}, HTTP: {}, Bandwidth: {}\n",
-                        timestamp,
-                        dev.name,
-                        dev.ip,
-                        dev.ping_status.map_or("N/A", |s| if s { "OK" } else { "FAIL" }),
-                        dev.http_status.map_or("N/A", |s| if s { "OK" } else { "FAIL" }),
-                        dev.bandwidth_usage.map_or("N/A".to_string(), |b| format!("{:.2} Mbps", b))
-                    );
-
-                    if let Err(e) = file.write_all(log_entry.as_bytes()) {
-                        error!("Failed to write log entry: {}", e);
-                    }
-                }
-                
-                if let Err(e) = file.flush() {
-                    error!("Failed to flush log file: {}", e);
                 }
             }
 
-            // Wait before next monitoring cycle
             sleep(Duration::from_secs(5)).await;
         }
     });

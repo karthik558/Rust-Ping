@@ -5,6 +5,7 @@ let devicesData = [];
 let isFetching = false;
 let sortOrder = {}; // Keep track of sorting
 let currentCategory = 'all';
+let deviceStatuses = new Map();
 
 async function fetchDevices() {
   if (isFetching) return;
@@ -551,3 +552,48 @@ function resetPassword() {
     window.location.href = "/static/password-manager.html";
   }
 }
+
+async function updateDeviceStatuses() {
+    try {
+        const response = await fetch('/devices');
+        if (!response.ok) throw new Error('Failed to fetch devices');
+        
+        const devices = await response.json();
+        let statusChanged = false;
+        
+        devices.forEach(device => {
+            const currentStatus = deviceStatuses.get(device.ip);
+            
+            if (!currentStatus || 
+                currentStatus.ping_status !== device.ping_status ||
+                currentStatus.http_status !== device.http_status ||
+                currentStatus.bandwidth_usage !== device.bandwidth_usage) {
+                
+                deviceStatuses.set(device.ip, {
+                    ping_status: device.ping_status,
+                    http_status: device.http_status,
+                    bandwidth_usage: device.bandwidth_usage,
+                    lastChange: Date.now()
+                });
+                statusChanged = true;
+            }
+        });
+        
+        // Only update UI if status actually changed
+        if (statusChanged) {
+            renderDevicesTable(devices);
+            updateCharts(devices);
+        }
+    } catch (error) {
+        console.error('Error updating device statuses:', error);
+    }
+}
+
+// Update status check interval
+const STATUS_CHECK_INTERVAL = 5000; // 5 seconds
+setInterval(updateDeviceStatuses, STATUS_CHECK_INTERVAL);
+
+// Initial load
+document.addEventListener('DOMContentLoaded', () => {
+    updateDeviceStatuses();
+});
