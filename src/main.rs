@@ -537,6 +537,8 @@ async fn main() {
             } else {
                 error!("Failed to open log file for writing");
             }
+            // Add 5 second delay after checking all devices
+            info!("Completed monitoring cycle, waiting 5 seconds before next cycle");
             sleep(Duration::from_secs(5)).await;
         }
     });
