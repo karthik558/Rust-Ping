@@ -1,0 +1,750 @@
+/* styles.css */
+
+/* --- Global Variables --- */
+:root {
+    --primary-color: #24292f;
+    --accent-color: #0969da;
+    --accent-color-hover: #0550ae; /* Darker shade for hover */
+    --success-color: #2da44e;
+    --warning-color: #d18616;
+    --error-color: #cf222e;
+    --logout-color: #ff4444;
+    --logout-hover-color: #cc0000;
+
+    /* --- Light Mode Colors --- */
+    --background-color-light: #f6f8fa;
+    --text-color-light: #24292f;
+    --card-background-light: #ffffff;
+    --border-color-light: #d0d7de;
+    --shadow-color-light: rgba(36, 41, 47, 0.1);
+    --input-background-light: #ffffff;
+    --table-header-bg-light: #f6f8fa;
+    --table-row-hover-light: rgba(9, 105, 218, 0.04);
+
+    /* --- Dark Mode Colors --- */
+    --background-color-dark: #0d1117;
+    --text-color-dark: #c9d1d9;
+    --card-background-dark: #161b22;
+    --border-color-dark: #30363d;
+    --shadow-color-dark: rgba(255, 255, 255, 0.03);
+    --input-background-dark: #21262d;
+    --table-header-bg-dark: #21262d;
+    --table-row-hover-dark: rgba(9, 105, 218, 0.08);
+
+    /* --- Common Styles --- */
+    --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+    --border-radius: 6px;
+    --transition-speed: 0.2s;
+    --box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+    --spacing-unit: 1rem;
+}
+
+/* --- Base Styles --- */
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: var(--font-family);
+    background-color: var(--background-color-light);
+    color: var(--text-color-light);
+    transition: background-color var(--transition-speed), color var(--transition-speed);
+    line-height: 1.5;
+}
+
+body.dark-mode {
+    background-color: var(--background-color-dark);
+    color: var(--text-color-dark);
+}
+
+.app-container {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+/* --- Header --- */
+.header {
+    background-color: var(--card-background-light);
+    box-shadow: var(--box-shadow);
+    padding: calc(var(--spacing-unit) / 2) var(--spacing-unit);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    transition: background-color var(--transition-speed), box-shadow var(--transition-speed);
+    border-bottom: 1px solid var(--border-color-light);
+}
+
+.dark-mode .header {
+    background-color: var(--card-background-dark);
+    box-shadow: 0 1px 2px rgba(255, 255, 255, 0.03);
+    border-bottom: 1px solid var(--border-color-dark);
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+}
+
+.logo-link {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    color: inherit;
+}
+
+.logo img {
+    height: 32px;
+    margin-right: 0.5rem;
+}
+
+.app-name {
+    font-weight: 600;
+    font-size: 1.1rem;
+    color: var(--primary-color);
+}
+
+.dark-mode .app-name {
+    color: var(--text-color-dark);
+}
+
+/* --- Navigation --- */
+.navigation {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background-color: var(--card-background-light);
+    border-radius: var(--border-radius);
+    padding: 0.5rem;
+    box-shadow: var(--box-shadow);
+    transition: background-color var(--transition-speed), box-shadow var(--transition-speed);
+}
+
+.dark-mode .navigation {
+    background-color: var(--card-background-dark);
+    box-shadow: 0 1px 2px rgba(255, 255, 255, 0.03);
+}
+
+.navigation .nav-button,
+.navigation .nav-link {
+    margin: 0;
+}
+
+/* --- Button Styles --- */
+.nav-button,
+.button {
+    background-color: transparent;
+    border: 1px solid var(--border-color-light);
+    border-radius: var(--border-radius);
+    padding: 0.375rem 0.75rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background-color var(--transition-speed), color var(--transition-speed), border-color var(--transition-speed);
+    color: var(--text-color-light);
+    font-size: 0.875rem;
+    line-height: 1;
+}
+
+.nav-button i {
+    margin: 0; /* Remove any default margin on icons */
+}
+
+.nav-button:hover,
+.nav-link:hover,
+.button:hover {
+    background-color: var(--table-row-hover-light);
+    border-color: var(--border-color-light);
+    color: var(--accent-color);
+}
+
+.dark-mode .nav-button {
+    color: var(--text-color-dark);
+    border-color: var(--border-color-dark);
+}
+
+.dark-mode .nav-button:hover,
+.dark-mode .nav-link:hover,
+.dark-mode .button:hover {
+    background-color: var(--table-row-hover-dark);
+    border-color: var(--border-color-dark);
+    color: var(--accent-color);
+}
+
+/* Primary Button */
+.primary-button {
+    background-color: var(--accent-color);
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: var(--border-radius); /* Use consistent border-radius */
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+}
+
+.primary-button:hover {
+    color: white;
+    background-color: var(--accent-color-hover);
+}
+
+/* Logout Button */
+.logout-button {
+    background-color: var(--logout-color);
+    color: white;
+    border-color: var(--logout-color);
+    margin-left: auto;
+}
+
+.logout-button:hover {
+    background-color: var(--logout-hover-color);
+    border-color: var(--logout-hover-color);
+    color: white;
+}
+
+.dark-mode .logout-button {
+    background-color: var(--logout-color);
+    border-color: var(--logout-color);
+    color: white;
+}
+
+.dark-mode .logout-button:hover {
+    background-color: var(--logout-hover-color);
+    border-color: var(--logout-hover-color);
+    color: white;
+}
+
+/* --- Nav Links --- */
+.nav-link {
+    color: var(--accent-color);
+    text-decoration: none;
+    padding: 0.375rem 0.75rem;
+    border-radius: var(--border-radius);
+    transition: background-color var(--transition-speed), color var(--transition-speed);
+    display: inline-flex; /* Use inline-flex for icon alignment */
+    align-items: center; /* Vertically center icon and text */
+    font-size: 0.875rem;
+}
+
+.nav-link i {
+    margin-right: 0.5rem; /* Add space between icon and text */
+}
+
+.nav-link.active {
+    background-color: var(--accent-color);
+    color: white;
+    border-color: var(--accent-color);
+}
+
+.nav-link.active:hover {
+    background-color: var(--accent-color-hover);
+    color: white;
+    border-color: var(--accent-color-hover);
+}
+
+/* --- Main Content --- */
+.main-content {
+    padding: var(--spacing-unit);
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    flex: 1;
+     position: relative; /* For absolute positioning of refresh button (Option 1) */
+}
+
+/* --- Card --- */
+.card {
+    background-color: var(--card-background-light);
+    box-shadow: var(--box-shadow);
+    transition: box-shadow var(--transition-speed);
+    padding: var(--spacing-unit);
+    border-radius: var(--border-radius);
+    border: 1px solid var(--border-color-light);
+    margin-bottom: var(--spacing-unit); /* Add margin-bottom to *every* card */
+}
+.card:last-child {
+    margin-bottom: 0; /* Remove margin from the *last* card */
+}
+
+.dark-mode .card {
+    background-color: var(--card-background-dark);
+    box-shadow: 0 1px 2px rgba(255, 255, 255, 0.03);
+    border-color: var(--border-color-dark);
+}
+
+.section-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    text-align: left;
+    color: var(--text-color-light);
+    transition: color var(--transition-speed);
+}
+
+.dark-mode .section-title {
+    color: var(--text-color-dark);
+}
+
+/* --- Form Styles --- */
+.form-group {
+    margin-bottom: 1rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: var(--text-color-light);
+}
+
+.dark-mode .form-group label {
+    color: var(--text-color-dark);
+}
+
+.form-group input[type="text"],
+.form-group input[type="date"],
+.form-group input[type="url"],
+.form-group select {
+    width: 100%;
+    padding: 0.75rem;
+    border-radius: var(--border-radius); /* Use consistent border-radius */
+    border: 1px solid var(--border-color-light);
+    background-color: var(--input-background-light);
+    color: var(--text-color-light);
+    transition: border-color 0.3s ease, box-shadow 0.3s ease; /* Add box-shadow transition */
+    font-size: 0.875rem;
+     appearance: none; /* Remove default appearance */
+    -webkit-appearance: none; /* For Safari */
+    -moz-appearance: none;   /* For Firefox */
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23555'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E"); /* Custom dropdown arrow (light) */
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 16px 12px;
+}
+
+.dark-mode .form-group input[type="text"],
+.dark-mode .form-group input[type="date"],
+.dark-mode .form-group input[type="url"],
+.dark-mode .form-group select {
+    border-color: var(--border-color-dark);
+    background-color: var(--input-background-dark);
+    color: var(--text-color-dark);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23ccc'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E"); /* Custom dropdown arrow (dark) */
+}
+
+.form-group input:focus,
+.form-group select:focus {
+    outline: none;
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 3px rgba(9, 105, 218, 0.3); /* Use 3px wide shadow on focus */
+}
+
+.dark-mode .form-group input:focus,
+.dark-mode .form-group select:focus {
+    box-shadow: 0 0 0 3px rgba(9, 105, 218, 0.5); /* Darker shadow on focus */
+}
+
+.checkbox-group {
+    display: flex;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.checkbox-group label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: normal;
+    cursor: pointer;
+}
+
+#customCategoryGroup {
+    margin-top: 0.75rem;
+    transition: all 0.3s ease;
+}
+
+#customCategory {
+    width: 100%;
+    padding: 0.75rem;
+    border-radius: var(--border-radius);
+    border: 1px solid var(--border-color-light);
+    background-color: var(--input-background-light);
+    color: var(--text-color-light);
+    transition: border-color 0.3s ease;
+    font-size: 0.875rem;
+}
+
+.dark-mode #customCategory {
+    border-color: var(--border-color-dark);
+    background-color: var(--input-background-dark);
+    color: var(--text-color-dark);
+}
+
+#customCategory:focus {
+    outline: none;
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 3px rgba(9, 105, 218, 0.3);
+}
+
+/* --- Table Styles --- */
+.table-container {
+    overflow-x: auto;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    transition: box-shadow var(--transition-speed);
+    border: 1px solid var(--border-color-light);
+}
+
+.dark-mode .table-container {
+    box-shadow: 0 1px 2px rgba(255, 255, 255, 0.03);
+    border-color: var(--border-color-dark);
+}
+
+#devicesTable {
+    width: 100%;
+    border-collapse: collapse;
+    white-space: nowrap;
+}
+
+#devicesTable th,
+#devicesTable td {
+    padding: 0.75rem;
+    text-align: left;
+    border-bottom: 1px solid var(--border-color-light);
+}
+
+#devicesTable th {
+    background-color: var(--table-header-bg-light);
+    transition: background-color var(--transition-speed);
+    font-weight: 600;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+
+.dark-mode #devicesTable th {
+    background-color: var(--table-header-bg-dark);
+    border-bottom: 1px solid var(--border-color-dark);
+}
+
+.dark-mode #devicesTable td {
+    border-bottom: 1px solid var(--border-color-dark);
+}
+
+#devicesTable tbody tr:hover {
+    background-color: var(--table-row-hover-light);
+    transition: background-color var(--transition-speed);
+}
+
+.dark-mode #devicesTable tbody tr:hover {
+    background-color: var(--table-row-hover-dark);
+}
+
+/* --- Device Actions --- */
+.delete-button {
+    background-color: #e74c3c;
+    color: white;
+    border: none;
+    padding: 0.5rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.delete-button:hover {
+    background-color: #c0392b;
+}
+
+/* --- Footer --- */
+.footer {
+    text-align: center;
+    padding: var(--spacing-unit);
+    color: #6e7681;
+    margin-top: auto;
+    border-top: 1px solid var(--border-color-light);
+    transition: border-top var(--transition-speed);
+    font-size: 0.875rem;
+}
+
+.dark-mode .footer {
+    border-top: 1px solid var(--border-color-dark);
+    color: #8b949e;
+}
+
+/* --- Dark Mode Toggle --- */
+.dark-mode-toggle {
+    cursor: pointer;
+    background-color: transparent;
+    border: 1px solid var(--border-color-light);
+    border-radius: var(--border-radius);
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color var(--transition-speed), color var(--transition-speed), border-color var(--transition-speed);
+    color: var(--text-color-light);
+    font-size: 1rem;
+}
+
+.dark-mode-toggle i {
+    color: var(--text-color-light);
+    margin: 0; /* Remove default icon margin */
+}
+
+.dark-mode-toggle:hover {
+    background-color: var(--table-row-hover-light);
+    border-color: var(--border-color-light);
+    color: var(--accent-color);
+}
+
+.dark-mode .dark-mode-toggle:hover {
+    background-color: var(--table-row-hover-dark);
+    border-color: var(--border-color-dark);
+    color: var(--accent-color);
+}
+
+.dark-mode .dark-mode-toggle {
+    background-color: transparent;
+    border-color: var(--border-color-dark);
+}
+
+.dark-mode .dark-mode-toggle i {
+    color: var(--text-color-dark);
+}
+
+/* --- Refresh Button --- */
+.refresh-button {
+    background-color: var(--accent-color);
+    color: white;
+    border: none;
+    border-radius: var(--border-radius); /* Use consistent border-radius */
+    padding: 0.375rem 0.75rem;  /* Consistent with nav-buttons */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background-color var(--transition-speed);
+    font-size: 0.875rem;
+}
+
+.refresh-button:hover {
+    background-color: var(--accent-color-hover);
+}
+
+.refresh-button.spinning i {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* --- Positioning Options (Choose ONE) --- */
+
+/* Option 1: Top Right Corner of the Main Content */
+.refresh-button.top-right {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    z-index: 2;
+}
+
+/* Option 2:  Next to the "Manage Devices" Title (Most Common) */
+.header-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+}
+
+/* --- Export Button --- */
+.export-button {
+	background-color: var(--accent-color);
+	color: white;
+	border: none;
+	padding: 0.375rem 0.75rem;
+	border-radius: var(--border-radius);
+	font-weight: 500;
+	cursor: pointer;
+	transition: background-color 0.3s ease;
+	display: inline-flex;
+	align-items: center;
+	gap: 0.5rem;
+    font-size: 0.875rem;
+}
+
+.export-button:hover {
+    color: white;
+    background-color: var(--accent-color-hover);
+}
+
+.export-section {
+    text-align: center;
+    margin-top: 2rem;
+}
+
+/* --- Notifications --- */
+.notification {
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    padding: 1rem 1.5rem;
+    border-radius: 8px;
+    color: white;
+    font-weight: 500;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    animation: slideIn 0.3s ease;
+}
+
+.notification.success {
+    background-color: #2ecc71;
+}
+
+.notification.error {
+    background-color: #e74c3c;
+}
+
+.notification.info {
+    background-color: #3498db;
+}
+
+.notification.fade-out {
+    animation: fadeOut 0.3s ease forwards;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes fadeOut {
+    from {
+        opacity: 1;
+    }
+    to {
+        opacity: 0;
+    }
+}
+
+
+/* --- Responsive Adjustments --- */
+@media (max-width: 768px) {
+    .header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .navigation {
+        width: 100%;
+        justify-content: space-around;
+        flex-wrap: wrap;
+        padding: 0.5rem 0;
+    }
+     .navigation a{
+        margin-top: 10px;
+     }
+
+    .device-form {
+        grid-template-columns: 1fr;
+    }
+      /* Hide less important columns on small screens */
+    #devicesTable th:nth-child(3),
+    #devicesTable td:nth-child(3),
+    #devicesTable th:nth-child(5),
+    #devicesTable td:nth-child(5) {
+        display: none;
+    }
+}
+
+/* --- Form Specific Adjustments --- */
+.device-form {
+    display: grid;
+    gap: 1rem;
+    max-width: 600px; /* Or whatever width you prefer */
+    margin: 0 auto; /* Center the form */
+}
+
+.button-group {
+    margin-top: 1rem;
+    display: flex;
+    justify-content: flex-end; /* Align button to the right */
+}
+.form-group input[type="date"] {
+    width: 100%;
+    padding: 0.375rem 0.75rem;
+    border: 1px solid var(--border-color-light);
+    border-radius: var(--border-radius);
+    background-color: var(--input-background-light);
+    color: var(--text-color-light);
+    transition: border-color var(--transition-speed), box-shadow var(--transition-speed);
+    outline: none;
+    font-size: 0.875rem;
+    font-family: var(--font-family);
+}
+
+.dark-mode .form-group input[type="date"] {
+    border-color: var(--border-color-dark);
+    background-color: var(--input-background-dark);
+    color: var(--text-color-dark);
+}
+
+.form-group input[type="date"]:focus {
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 3px rgba(9, 105, 218, 0.3);
+}
+
+.dark-mode .form-group input[type="date"]:focus {
+    box-shadow: 0 0 0 3px rgba(9, 105, 218, 0.5);
+}
+
+/* Remove default date picker styling and add custom styles */
+.form-group input[type="date"]::-webkit-calendar-picker-indicator {
+    cursor: pointer;
+    filter: brightness(80%);
+    border-radius: 3px;
+    padding: 0.2rem;
+}
+
+.dark-mode .form-group input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(1) brightness(150%);
+}
+
+/* Firefox specific styling */
+.form-group input[type="date"]::-moz-calendar-picker-indicator {
+    cursor: pointer;
+    color: var(--text-color-light);
+    border-radius: var(--border-radius);
+    padding: 0.2rem;
+}
+
+.dark-mode .form-group input[type="date"]::-moz-calendar-picker-indicator {
+     color: var(--text-color-dark);
+}
+
+/* Hover effect */
+.form-group input[type="date"]::-webkit-calendar-picker-indicator:hover {
+    background-color: var(--table-row-hover-light);
+}
+
+.dark-mode .form-group input[type="date"]::-webkit-calendar-picker-indicator:hover {
+   background-color: var(--table-row-hover-dark);
+}
