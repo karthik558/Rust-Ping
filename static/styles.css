@@ -424,7 +424,7 @@ body.dark-mode {
     font-size: 1.1rem;
     font-weight: 600;
     margin-bottom: 1rem;
-    text-align: center;
+    text-align: left;
     color: var(--text-color-light);
     transition: color var(--transition-speed);
 }

@@ -36,6 +36,9 @@
                     <input type="date" id="endDate" placeholder="End Date" class="filter-input">
                     <input type="text" id="deviceFilter" placeholder="Filter by device name" class="filter-input">
                     <button onclick="applyFilters()" class="nav-button"><i class="fas fa-filter"></i></button>
+                    <button onclick="exportLogs()" class="nav-button" title="Export Logs">
+                        <i class="fas fa-file-export"></i>
+                    </button>
                 </div>
 
                 <div class="table-container">
@@ -189,6 +192,58 @@ function logout() {
                 icon.classList.remove("fa-sun");
                 icon.classList.add("fa-moon");
             }
+        }
+
+        function exportLogs() {
+            const rows = document.getElementById('failedLogsBody').getElementsByTagName('tr');
+            const visibleLogs = [];
+
+            // Collect only visible rows (not filtered out)
+            for (let row of rows) {
+                if (row.style.display !== 'none') {
+                    visibleLogs.push({
+                        date: row.cells[0].textContent,
+                        time: row.cells[1].textContent,
+                        device: row.cells[2].textContent,
+                        pingStatus: row.cells[3].textContent,
+                        httpStatus: row.cells[4].textContent,
+                        bandwidth: row.cells[5].textContent
+                    });
+                }
+            }
+
+            if (visibleLogs.length === 0) {
+                alert('No logs to export');
+                return;
+            }
+
+            // Create CSV content
+            const csvContent = [
+                ['Date', 'Time', 'Device', 'Ping Status', 'HTTP Status', 'Bandwidth'],
+                ...visibleLogs.map(log => [
+                    log.date,
+                    log.time,
+                    log.device,
+                    log.pingStatus,
+                    log.httpStatus,
+                    log.bandwidth
+                ])
+            ].map(row => row.join(',')).join('\n');
+
+            // Get current filters for filename
+            const startDate = document.getElementById('startDate').value || 'all';
+            const endDate = document.getElementById('endDate').value || 'all';
+            const deviceFilter = document.getElementById('deviceFilter').value || 'all';
+
+            // Create and trigger download
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `failed_logs_${startDate}_${endDate}_${deviceFilter}_${timestamp}.csv`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         }
 
         // Load failed logs, and set up dark mode on DOMContentLoaded
