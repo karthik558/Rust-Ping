@@ -26,6 +26,7 @@ use rocket::http::{Cookie, CookieJar, Status};
 use rocket::request::{self, Request, FromRequest};
 use rocket::outcome::Outcome;
 use serde::Deserialize;
+use chrono::{Local, DateTime};
 
 async fn process_logs(start_date_parsed: Option<NaiveDate>, end_date_parsed: Option<NaiveDate>) -> Vec<String> {
     let mut filtered_logs = Vec::new();
@@ -495,7 +496,7 @@ async fn main() {
             }
 
             // Get current timestamp and date.
-            let now = Utc::now();
+            let now: DateTime<Local> = Local::now();
             let timestamp = now.format("%Y-%m-%d %H:%M:%S").to_string();
             let today = now.format("%Y-%m-%d").to_string();
 
