@@ -45,11 +45,11 @@
                     <table id="failedLogsTable">
                         <thead>
                             <tr>
-                                <th>Date</th>
-                                <th>Time</th>
-                                <th>Device</th>
-                                <th>Ping Status</th>
-                                <th>HTTP Status</th>
+                                <th class="sortable" data-sort="date">Date <i class="fas fa-sort"></i></th>
+                                <th class="sortable" data-sort="time">Time <i class="fas fa-sort"></i></th>
+                                <th class="sortable" data-sort="device">Device <i class="fas fa-sort"></i></th>
+                                <th class="sortable" data-sort="ping">Ping Status <i class="fas fa-sort"></i></th>
+                                <th class="sortable" data-sort="http">HTTP Status <i class="fas fa-sort"></i></th>
                                 <th>Bandwidth</th>
                             </tr>
                         </thead>
@@ -66,6 +66,65 @@
     </div>
 
     <script>
+        let currentSort = {
+            column: 'date',
+            direction: 'desc'
+        };
+
+        function sortLogs(logs, column, direction) {
+            return [...logs].sort((a, b) => {
+                let compareA, compareB;
+                
+                switch(column) {
+                    case 'date':
+                        compareA = new Date(`${a.date} ${a.time}`);
+                        compareB = new Date(`${b.date} ${b.time}`);
+                        return direction === 'asc' ? 
+                            compareA - compareB : 
+                            compareB - compareA;
+                    case 'time':
+                        compareA = new Date(`2000-01-01 ${a.time}`).getTime();
+                        compareB = new Date(`2000-01-01 ${b.time}`).getTime();
+                        break;
+                    case 'device':
+                        compareA = a.device.toLowerCase();
+                        compareB = b.device.toLowerCase();
+                        break;
+                    case 'ping':
+                        compareA = a.pingStatus.toLowerCase();
+                        compareB = b.pingStatus.toLowerCase();
+                        break;
+                    case 'http':
+                        compareA = a.httpStatus.toLowerCase();
+                        compareB = b.httpStatus.toLowerCase();
+                        break;
+                    default:
+                        return 0;
+                }
+
+                if (direction === 'asc') {
+                    return compareA > compareB ? 1 : -1;
+                } else {
+                    return compareA < compareB ? 1 : -1;
+                }
+            });
+        }
+
+        function updateSortIcons() {
+            document.querySelectorAll('th.sortable').forEach(header => {
+                const icon = header.querySelector('i');
+                const sortKey = header.dataset.sort;
+
+                icon.classList.remove('fa-sort', 'fa-sort-up', 'fa-sort-down');
+                
+                if (sortKey === currentSort.column) {
+                    icon.classList.add(currentSort.direction === 'asc' ? 'fa-sort-up' : 'fa-sort-down');
+                } else {
+                    icon.classList.add('fa-sort');
+                }
+            });
+        }
+
         async function loadFailedLogs() {
             try {
                 const response = await fetch('/logs_json');
@@ -80,10 +139,13 @@
                     log.http.toLowerCase() === 'fail'
                 );
 
+                // Sort the logs
+                const sortedLogs = sortLogs(failedLogs, currentSort.column, currentSort.direction);
+                
                 const tbody = document.getElementById('failedLogsBody');
                 tbody.innerHTML = '';
 
-                failedLogs.forEach(log => {
+                sortedLogs.forEach(log => {
                     const row = document.createElement('tr');
                     row.className = log.down ? 'status-down' : '';
                       const addCell = (content) => {
@@ -109,6 +171,9 @@
                     addCell(log.bandwidth);
                     tbody.appendChild(row);
                 });
+
+                // Update sort icons
+                updateSortIcons();
             } catch (error) {
                 console.error('Error loading failed logs:', error);
             }
@@ -258,6 +323,22 @@ function logout() {
             loadFailedLogs();
             setInterval(loadFailedLogs, 30000);
             updateLogo(savedDarkMode === 'true'); // Call updateLogo on page load!
+
+            // Add click handlers for sortable columns
+            document.querySelectorAll('th.sortable').forEach(header => {
+                header.addEventListener('click', () => {
+                    const column = header.dataset.sort;
+                    
+                    if (currentSort.column === column) {
+                        currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
+                    } else {
+                        currentSort.column = column;
+                        currentSort.direction = 'asc';
+                    }
+
+                    loadFailedLogs();
+                });
+            });
         });
 
     </script>

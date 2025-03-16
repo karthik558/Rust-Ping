@@ -35,13 +35,13 @@
                 <table id="devices-table">
                     <thead>
                         <tr>
-                            <th>Date</th>
-                            <th>Time</th>
-                            <th>Device</th>
-                            <th>Ping</th>
+                            <th class="sortable" data-sort="date">Date <i class="fas fa-sort"></i></th>
+                            <th class="sortable" data-sort="time">Time <i class="fas fa-sort"></i></th>
+                            <th class="sortable" data-sort="device">Device <i class="fas fa-sort"></i></th>
+                            <th class="sortable" data-sort="ping">Ping <i class="fas fa-sort"></i></th>
                             <th>HTTP</th>
                             <th>Bandwidth</th>
-                            <th>Status</th>
+                            <th class="sortable" data-sort="status">Status <i class="fas fa-sort"></i></th>
                         </tr>
                     </thead>
                     <tbody id="logTableBody">
@@ -58,6 +58,59 @@
     </div>
 
     <script>
+        // Add these variables before your existing functions
+        let currentSort = {
+            column: 'date',
+            direction: 'desc'
+        };
+
+        // Add this function to handle sorting
+        function sortLogs(logs, column, direction) {
+            return [...logs].sort((a, b) => {
+                let compareA, compareB;
+                
+                switch(column) {
+                    case 'date':
+                        compareA = new Date(`${a.date} ${a.time}`);
+                        compareB = new Date(`${b.date} ${b.time}`);
+                        break;
+                    case 'time':
+                        // Convert time strings to comparable values
+                        compareA = new Date(`2000-01-01 ${a.time}`).getTime();
+                        compareB = new Date(`2000-01-01 ${b.time}`).getTime();
+                        break;
+                    case 'device':
+                        compareA = a.device.toLowerCase();
+                        compareB = b.device.toLowerCase();
+                        break;
+                    case 'ping':
+                        compareA = a.ping.toLowerCase();
+                        compareB = b.ping.toLowerCase();
+                        break;
+                    case 'status':
+                        compareA = a.down ? 'down' : 'up';
+                        compareB = b.down ? 'down' : 'up';
+                        break;
+                    default:
+                        return 0;
+                }
+
+                // Handle date objects specifically
+                if (column === 'date') {
+                    return direction === 'asc' ? 
+                        compareA.getTime() - compareB.getTime() : 
+                        compareB.getTime() - compareA.getTime();
+                }
+
+                // Handle other types of comparisons
+                if (direction === 'asc') {
+                    return compareA > compareB ? 1 : -1;
+                } else {
+                    return compareA < compareB ? 1 : -1;
+                }
+            });
+        }
+
         async function fetchLogs() {
             try {
                 const response = await fetch('/logs_json');
@@ -72,11 +125,18 @@
             }
         }
 
+        // Update the populateLogTable function
         function populateLogTable(logs) {
+            // Sort logs before populating
+            const sortedLogs = sortLogs(logs, currentSort.column, currentSort.direction);
             const tbody = document.getElementById('logTableBody');
             tbody.innerHTML = "";
+
+            // Update sort icons
+            updateSortIcons();
+
             // logs is expected to be an array of log entry objects.
-            logs.forEach(entry => {
+            sortedLogs.forEach(entry => {
                 const tr = document.createElement('tr');
                 if (entry.down) {
                     tr.classList.add('down'); // Add class for down status
@@ -111,6 +171,42 @@
                 tbody.appendChild(tr);
             });
         }
+
+        // Add function to update sort icons
+        function updateSortIcons() {
+            document.querySelectorAll('th.sortable').forEach(header => {
+                const icon = header.querySelector('i');
+                const sortKey = header.dataset.sort;
+
+                icon.classList.remove('fa-sort', 'fa-sort-up', 'fa-sort-down');
+                
+                if (sortKey === currentSort.column) {
+                    icon.classList.add(currentSort.direction === 'asc' ? 'fa-sort-up' : 'fa-sort-down');
+                } else {
+                    icon.classList.add('fa-sort');
+                }
+            });
+        }
+
+        // Add click handlers for sortable columns
+        document.addEventListener('DOMContentLoaded', () => {
+            // ...existing DOMContentLoaded code...
+
+            document.querySelectorAll('th.sortable').forEach(header => {
+                header.addEventListener('click', () => {
+                    const column = header.dataset.sort;
+                    
+                    if (currentSort.column === column) {
+                        currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
+                    } else {
+                        currentSort.column = column;
+                        currentSort.direction = 'asc';
+                    }
+
+                    fetchLogs(); // This will trigger a re-sort and re-render
+                });
+            });
+        });
 
         // Function to reload the current page
         function reloadCurrentPage() {

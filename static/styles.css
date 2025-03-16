@@ -141,7 +141,7 @@ body.dark-mode {
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    transition: background-color var(--transition-speed), color var(--transition-speed), border-color var(--transition-speed);
+    transition: background-color var(--transition-speed), color var(--transition-speed), border-color var (--transition-speed);
     color: var(--text-color-light);
     font-size: 0.875rem;
     line-height: 1;
@@ -156,7 +156,7 @@ body.dark-mode {
 .button:hover {
     background-color: var(--table-row-hover-light);
     border-color: var(--border-color-light);
-    color: var(--accent-color);
+    color: var (--accent-color);
 }
 
 .dark-mode .nav-button {
@@ -793,4 +793,52 @@ body.dark-mode {
     background-color: var(--accent-color);
     color: white;
     border-color: var(--accent-color);
+}
+
+/* --- Sortable Table Headers --- */
+.sortable {
+    cursor: pointer;
+    user-select: none;
+    position: relative;
+}
+
+.sortable:hover {
+    background-color: var(--hover-bg);
+}
+
+.sortable i {
+    margin-left: 5px;
+    font-size: 0.8em;
+    opacity: 0.6;
+    transition: opacity 0.2s ease;
+}
+
+.sortable:hover i {
+    opacity: 1;
+}
+
+.fa-sort-up,
+.fa-sort-down {
+    opacity: 1;
+    color: var(--accent-color);
+}
+
+.dark-mode .sortable:hover {
+    background-color: var(--hover-bg-dark);
+}
+
+th[data-sort="time"] {
+    min-width: 100px;
+}
+
+th[data-sort="time"] i {
+    margin-left: 5px;
+}
+
+.sortable[data-sort="time"]:hover {
+    background-color: var(--hover-bg);
+}
+
+.dark-mode .sortable[data-sort="time"]:hover {
+    background-color: var(--hover-bg-dark);
 }
