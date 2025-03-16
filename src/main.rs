@@ -517,9 +517,10 @@ async fn main() {
                 for dev in locked.iter() {
                     // Format the log entry
                     let log_entry = format!(
-                        "{} - {}: Ping: {}, HTTP: {}, Bandwidth: {}\n",
+                        "{} - {} ({}): Ping: {}, HTTP: {}, Bandwidth: {}\n",
                         timestamp,
                         dev.name,
+                        dev.ip,
                         dev.ping_status.map_or("N/A", |s| if s { "OK" } else { "FAIL" }),
                         dev.http_status.map_or("N/A", |s| if s { "OK" } else { "FAIL" }),
                         dev.bandwidth_usage.map_or("N/A".to_string(), |b| format!("{:.2} Mbps", b))
