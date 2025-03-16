@@ -175,13 +175,20 @@ body.dark-mode {
 /* Primary Button Style */
 .primary-button {
     background-color: var(--accent-color);
-    color: #fff;
-    border-color: var(--accent-color);
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
     font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
 }
 
 .primary-button:hover {
-    background-color: #0559b3; /* Slightly darker on hover */
+    background-color: var(--accent-color-hover);
 }
 
 /* Logout Button Style */
@@ -439,15 +446,56 @@ body.dark-mode {
 
 .form-group label {
     display: block;
-    margin-bottom: 0.25rem;
+    margin-bottom: 0.5rem;
     font-weight: 500;
     color: var(--text-color-light);
-    transition: color var(--transition-speed);
-    font-size: 0.875rem;
 }
 
 .dark-mode .form-group label {
     color: var(--text-color-dark);
+}
+
+.form-group input[type="text"],
+.form-group input[type="date"],
+.form-group input[type="url"],
+.form-group select {
+    width: 100%;
+    padding: 0.75rem;
+    border-radius: 8px;
+    border: 1px solid var(--border-color-light);
+    background-color: var(--input-background-light);
+    color: var(--text-color-light);
+    transition: border-color 0.3s ease;
+}
+
+.dark-mode .form-group input[type="text"],
+.dark-mode .form-group input[type="date"],
+.dark-mode .form-group input[type="url"],
+.dark-mode .form-group select {
+    border-color: var(--border-color-dark);
+    background-color: var(--input-background-dark);
+    color: var(--text-color-dark);
+}
+
+.form-group input:focus,
+.form-group select:focus {
+    outline: none;
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+}
+
+.checkbox-group {
+    display: flex;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.checkbox-group label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: normal;
+    cursor: pointer;
 }
 
 .form-group input[type="text"],
@@ -483,6 +531,264 @@ body.dark-mode {
 .dark-mode .form-group input[type="date"]:focus,
 .dark-mode .form-group select:focus {
     box-shadow: 0 0 0 3px rgba(9, 105, 218, 0.5);
+}
+
+/* Remove default date picker styling and add custom styles */
+.form-group input[type="date"]::-webkit-calendar-picker-indicator {
+    cursor: pointer;
+    filter: brightness(80%);
+    border-radius: 3px;
+    padding: 0.2rem;
+}
+
+.dark-mode .form-group input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(1) brightness(150%);
+}
+
+/* Firefox specific styling */
+.form-group input[type="date"]::-moz-calendar-picker-indicator {
+    cursor: pointer;
+    color: var(--text-color-light);
+    border-radius: var(--border-radius);
+    padding: 0.2rem;
+}
+
+.dark-mode .form-group input[type="date"]::-moz-calendar-picker-indicator {
+     color: var(--text-color-dark);
+}
+
+/* Hover effect */
+.form-group input[type="date"]::-webkit-calendar-picker-indicator:hover {
+    background-color: var(--table-row-hover-light);
+}
+
+.dark-mode .form-group input[type="date"]::-webkit-calendar-picker-indicator:hover {
+   background-color: var(--table-row-hover-dark);
+}
+
+.icon-space {
+    padding-right: 1.2rem;
+}
+
+/* --- Category Filter Styles --- */
+.category-filter {
+    margin-bottom: 1rem;
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    align-items: center;
+    padding: 1rem; 
+    background-color: var(--card-background-light);
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    transition: background-color var(--transition-speed), box-shadow var(--transition-speed);
+    border: 1px solid var(--border-color-light);
+}
+
+.dark-mode .category-filter {
+    background-color: var(--card-background-dark);
+    box-shadow: var(--shadow-color-dark);
+    border-color: var(--border-color-dark);
+}
+
+.category-buttons {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.category-btn {
+    padding: 0.375rem 0.75rem;
+    border: 1px solid var(--border-color-light);
+    border-radius: var(--border-radius);
+    background-color: transparent;
+    color: var(--text-color-light);
+    cursor: pointer;
+    transition: background-color var(--transition-speed), color var (--transition-speed), border-color var(--transition-speed);
+    font-size: 0.875rem;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center; 
+    justify-content: center;
+
+}
+
+.dark-mode .category-btn {
+    color: var(--text-color-dark);
+    border-color: var(--border-color-dark);
+}
+
+.category-btn:hover {
+    background-color: var(--table-row-hover-light);
+    border-color: var(--border-color-light);
+    color: var(--accent-color);
+}
+
+.dark-mode .category-btn:hover {
+    background-color: var(--table-row-hover-dark);
+    border-color: var(--border-color-dark);
+    color: var(--accent-color);
+}
+
+.category-btn.active {
+    background-color: var(--accent-color);
+    color: white;
+    border-color: var(--accent-color);
+}
+
+/* --- Sortable Table Headers --- */
+.sortable {
+    cursor: pointer;
+    user-select: none;
+    position: relative;
+}
+
+.sortable:hover {
+    background-color: var(--hover-bg);
+}
+
+.sortable i {
+    margin-left: 5px;
+    font-size: 0.8em;
+    opacity: 0.6;
+    transition: opacity 0.2s ease;
+}
+
+.sortable:hover i {
+    opacity: 1;
+}
+
+.fa-sort-up,
+.fa-sort-down {
+    opacity: 1;
+    color: var(--accent-color);
+}
+
+.dark-mode .sortable:hover {
+    background-color: var(--hover-bg-dark);
+}
+
+th[data-sort="time"] {
+    min-width: 100px;
+}
+
+th[data-sort="time"] i {
+    margin-left: 5px;
+}
+
+.sortable[data-sort="time"]:hover {
+    background-color: var(--hover-bg);
+}
+
+.dark-mode .sortable[data-sort="time"]:hover {
+    background-color: var(--hover-bg-dark);
+}
+
+.device-management-section {
+    padding: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.device-form {
+    display: grid;
+    gap: 1rem;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.checkbox-group {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.checkbox-group label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.notification {
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    padding: 1rem 1.5rem;
+    border-radius: 8px;
+    color: white;
+    font-weight: 500;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    animation: slideIn 0.3s ease;
+}
+
+.notification.success {
+    background-color: #2ecc71;
+}
+
+.notification.error {
+    background-color: #e74c3c;
+}
+
+.notification.fade-out {
+    animation: fadeOut 0.3s ease forwards;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes fadeOut {
+    from {
+        opacity: 1;
+    }
+    to {
+        opacity: 0;
+    }
+}
+
+.delete-button {
+    background-color: #e74c3c;
+    color: white;
+    border: none;
+    padding: 0.5rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.delete-button:hover {
+    background-color: #c0392b;
+}
+
+.export-section {
+    text-align: center;
+    margin-top: 2rem;
+}
+
+.export-button {
+    background-color: #3498db;
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.export-button:hover {
+    background-color: #2980b9;
 }
 
 /* --- Dark Mode Toggle --- */
@@ -671,7 +977,7 @@ body.dark-mode {
     border-radius: var(--border-radius);
     background-color: var(--input-background-light);
     color: var(--text-color-light);
-    transition: border-color var(--transition-speed), box-shadow var(--transition-speed);
+    transition: border-color var (--transition-speed), box-shadow var(--transition-speed);
     outline: none;
     font-size: 0.875rem;
     font-family: var(--font-family);
@@ -729,116 +1035,67 @@ body.dark-mode {
     padding-right: 1.2rem;
 }
 
-/* --- Category Filter Styles --- */
-.category-filter {
-    margin-bottom: 1rem;
-    display: flex;
-    gap: 0.5rem;
-    flex-wrap: wrap;
-    align-items: center;
-    padding: 1rem; 
-    background-color: var(--card-background-light);
-    border-radius: var(--border-radius);
-    box-shadow: var(--box-shadow);
-    transition: background-color var(--transition-speed), box-shadow var(--transition-speed);
+#customCategoryGroup {
+    margin-top: 0.75rem;
+    transition: all 0.3s ease;
+}
+
+#customCategory {
+    width: 100%;
+    padding: 0.75rem;
+    border-radius: 8px;
     border: 1px solid var(--border-color-light);
-}
-
-.dark-mode .category-filter {
-    background-color: var(--card-background-dark);
-    box-shadow: var(--shadow-color-dark);
-    border-color: var(--border-color-dark);
-}
-
-.category-buttons {
-    display: flex;
-    gap: 0.5rem;
-    flex-wrap: wrap;
-}
-
-.category-btn {
-    padding: 0.375rem 0.75rem;
-    border: 1px solid var(--border-color-light);
-    border-radius: var(--border-radius);
-    background-color: transparent;
+    background-color: var(--input-background-light);
     color: var(--text-color-light);
-    cursor: pointer;
-    transition: background-color var(--transition-speed), color var(--transition-speed), border-color var(--transition-speed);
-    font-size: 0.875rem;
-    line-height: 1;
-    display: inline-flex;
-    align-items: center; 
-    justify-content: center;
-
+    transition: border-color 0.3s ease;
 }
 
-.dark-mode .category-btn {
+.dark-mode #customCategory {
+    border-color: var(--border-color-dark);
+    background-color: var(--input-background-dark);
     color: var(--text-color-dark);
-    border-color: var(--border-color-dark);
 }
 
-.category-btn:hover {
-    background-color: var(--table-row-hover-light);
-    border-color: var(--border-color-light);
-    color: var(--accent-color);
+#customCategory:focus {
+    outline: none;
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
 }
 
-.dark-mode .category-btn:hover {
-    background-color: var(--table-row-hover-dark);
-    border-color: var(--border-color-dark);
-    color: var(--accent-color);
+.header-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
 }
 
-.category-btn.active {
+.refresh-button {
     background-color: var(--accent-color);
     color: white;
-    border-color: var(--accent-color);
-}
-
-/* --- Sortable Table Headers --- */
-.sortable {
+    border: none;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     cursor: pointer;
-    user-select: none;
-    position: relative;
+    transition: all 0.3s ease;
 }
 
-.sortable:hover {
-    background-color: var(--hover-bg);
+.refresh-button:hover {
+    background-color: var(--accent-color-hover);
 }
 
-.sortable i {
-    margin-left: 5px;
-    font-size: 0.8em;
-    opacity: 0.6;
-    transition: opacity 0.2s ease;
+.refresh-button.spinning i {
+    animation: spin 1s linear infinite;
 }
 
-.sortable:hover i {
-    opacity: 1;
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
 }
 
-.fa-sort-up,
-.fa-sort-down {
-    opacity: 1;
-    color: var(--accent-color);
-}
-
-.dark-mode .sortable:hover {
-    background-color: var(--hover-bg-dark);
-}
-
-th[data-sort="time"] {
-    min-width: 100px;
-}
-
-th[data-sort="time"] i {
-    margin-left: 5px;
-}
-
-.sortable[data-sort="time"]:hover {
-    background-color: var(--hover-bg);
-}
-
-.dark-mode .sortable[data-sort="time"]:hover {
-    background-color: var(--hover-bg-dark);
+.notification.info {
+    background-color: #3498db;
 }

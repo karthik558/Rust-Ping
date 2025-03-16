@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RustPing | Device Management</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">  <!-- Make sure this styles.css is the SAME as the one used by index.html -->
+    <link rel="icon" href="favicon.png" type="image/x-icon"> <!-- Added favicon -->
+</head>
+<body>
+    <div class="app-container">
+        <header class="header">
+            <div class="logo">
+                <a href="index.html" class="logo-link">  <!--  Link back to the main dashboard -->
+                    <img src="logo-light.png" alt="RustPing Logo" id="logoImage">
+                    <span class="app-name">RustPing</span>
+                </a>
+            </div>
+            <nav class="navigation">
+                <!-- Navigation links, consistent with index.html -->
+                <a href="index.html" class="nav-link"><i class="fas fa-tachometer-alt"></i> Dashboard</a> <!-- Added dashboard icon -->
+                <a href="log_view.html" class="nav-link"><i class="fas fa-file-alt"></i> Live Logs</a>
+                <a href="failed_logs.html" class="nav-link"><i class="fas fa-exclamation-triangle"></i> Failed Logs</a>
+                 <a href="manage-devices.html" class="nav-link active" id="manageDevicesButton"><i class="fas fa-server"></i> Manage Devices</a>
+                <button onclick="logout()" class="nav-button logout-button"><i class="fas fa-sign-out-alt"></i> Logout</button>
+            </nav>
+            <div class="dark-mode-toggle" onclick="toggleDarkMode()">
+                <i class="fas fa-moon"></i>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <section class="device-management-section">  <!--  Keep the specific section class -->
+                <div class="card">
+                    <h2 class="section-title">Manage Devices</h2>
+                    <form id="deviceForm" class="device-form">
+                        <div class="form-group">
+                            <label for="deviceName">Device Name</label>
+                            <input type="text" id="deviceName" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="deviceIP">IP Address</label>
+                            <input type="text" id="deviceIP" required pattern="^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$">
+                        </div>
+                        <div class="form-group">
+                            <label for="deviceCategory">Category</label>
+                            <select id="deviceCategory" required>
+                                <option value="Firewall">Firewall</option>
+                                <option value="DNS Server">Server</option>
+                                <option value="Network Equipment">Network Equipment</option>
+                                <option value="Server">Server</option>
+                                <option value="Router">Router</option>
+                                <option value="Switch">Network Switch</option>
+                                <option value="Access Point">Access Point</option>
+                                <option value="CCTV">CCTV</option>
+                                <option value="Load Balancer">Load Balancer</option>
+
+                                <option value="Custom">Custom Category</option>
+                            </select>
+                            <div id="customCategoryGroup" style="display: none; margin-top: 10px;">
+                                <label for="customCategory">Enter Custom Category</label>
+                                <input type="text" id="customCategory" placeholder="Enter custom category name">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Sensors</label>
+                            <div class="checkbox-group">
+                                <label><input type="checkbox" value="Ping" checked> Ping</label>
+                                <label><input type="checkbox" value="Http"> HTTP</label>
+                                <label><input type="checkbox" value="Https"> HTTPS</label>
+                            </div>
+                        </div>
+                        <div class="form-group http-path-group" style="display: none;">
+                            <label for="httpPath">HTTP Path</label>
+                            <input type="url" id="httpPath" placeholder="http://example.com">
+                        </div>
+                        <div class="button-group">
+                            <button type="submit" class="button primary-button">
+                                <i class="fas fa-plus"></i> Add Device
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="card">
+                    <h2 class="section-title">Device List</h2>
+                    <div class="table-container">
+                        <table id="devicesTable">
+                            <thead>
+                                <tr>
+                                    <th>Device Name</th>
+                                    <th>IP Address</th>
+                                    <th>Category</th>
+                                    <th>Sensors</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="deviceList"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer class="footer">  <!--  Consistent footer -->
+            © Copyright 2025. All rights reserved. Developed by KARTHIK LAL.
+        </footer>
+    </div>
+
+    <script src="manage-devices.js"></script>
+     <script>
+        // Add active class to the current button (highlight it)
+        document.addEventListener("DOMContentLoaded", function() {
+            const navLinks = document.querySelectorAll(".navigation .nav-link");
+            const currentPath = window.location.pathname;
+
+            navLinks.forEach(link => {
+
+              if (link.href.endsWith(currentPath)) {
+                link.classList.add("active");
+              }
+            });
+        });
+
+    </script>
+</body>
+</html>

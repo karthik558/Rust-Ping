@@ -1,28 +1,51 @@
 [
   {
-    "category": "Firewall",
     "name": "Firewall",
     "ip": "192.168.1.1",
-    "sensors": ["Ping"]
+    "category": "Firewall",
+    "sensors": [
+      "Ping"
+    ]
   },
   {
-    "category": "DNS Server",
     "name": "Google DNS",
     "ip": "8.8.8.8",
-    "sensors": ["Ping", "Http", "Https"],
+    "category": "DNS Server",
+    "sensors": [
+      "Ping",
+      "Http",
+      "Https"
+    ],
     "http_path": "http://google.com"
   },
   {
-    "category": "DNS Server",
     "name": "Cloudflare DNS",
     "ip": "1.1.1.1",
-    "sensors": ["Ping", "Https", "Http"],
+    "category": "DNS Server",
+    "sensors": [
+      "Ping",
+      "Https",
+      "Http"
+    ],
     "http_path": "http://google.com"
   },
   {
-    "category": "Network Equipment",
     "name": "Network Switch",
     "ip": "192.168.0.100",
-    "sensors": ["Ping"]
+    "category": "Network Equipment",
+    "sensors": [
+      "Ping"
+    ]
+  },
+  {
+    "name": "Antivirus Server",
+    "ip": "8.8.4.4",
+    "category": "Antivirus Server",
+    "sensors": [
+      "Ping",
+      "Http",
+      "Https"
+    ],
+    "http_path": "https://google.in"
   }
 ]

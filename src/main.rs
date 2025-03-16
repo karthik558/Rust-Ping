@@ -4,10 +4,10 @@ extern crate rocket;
 mod models;
 mod sensors;
 
-use rocket::{get, post, routes, State, response::Redirect, catch, catchers};
+use rocket::{get, post, delete, routes, State, response::Redirect, catch, catchers};
 use rocket::serde::json::Json;
 use rocket::fs::{NamedFile, FileServer, relative};
-use models::{Device, SensorType};
+use models::{Device as ModelDevice, SensorType};
 use log::{info, error};
 use sensors::{monitor_ping, monitor_http};
 use std::fs::{self, OpenOptions};
@@ -20,21 +20,21 @@ use rand::Rng;
 use std::sync::Arc;
 use tokio::sync::Mutex;
 use std::collections::HashMap;
-use chrono::{NaiveDate, Utc};
+use chrono::{NaiveDate, Local, DateTime};
 use rocket::response::content::RawText;
-use rocket::http::{Cookie, CookieJar, Status};
+use rocket::http::{Status};
 use rocket::request::{self, Request, FromRequest};
 use rocket::outcome::Outcome;
 use serde::Deserialize;
-use chrono::{Local, DateTime};
+use rocket::serde::Serialize;
 
 async fn process_logs(start_date_parsed: Option<NaiveDate>, end_date_parsed: Option<NaiveDate>) -> Vec<String> {
     let mut filtered_logs = Vec::new();
     if let Ok(contents) = fs::read_to_string(LOG_FILE) {
         for line in contents.lines() {
             if let Some((timestamp, rest)) = line.split_once(" - ") {
-                let date_str = &timestamp[..10];  // Add & here for string slice reference
-                if let Ok(entry_date) = NaiveDate::parse_from_str(date_str, "%Y-%m-%d") {  // date_str is already a &str
+                let date_str = &timestamp[..10]; 
+                if let Ok(entry_date) = NaiveDate::parse_from_str(date_str, "%Y-%m-%d") {
                     let mut include = true;
                     
                     if let Some(start) = start_date_parsed {
@@ -75,8 +75,8 @@ impl DeviceStatus {
 
 // Use the new DeviceStatus struct in the type alias.
 type DeviceStatusMap = Arc<Mutex<HashMap<String, DeviceStatus>>>;
-
-type SharedDevices = Arc<Mutex<Vec<Device>>>;
+type SharedDevices = Arc<Mutex<Vec<ModelDevice>>>;
+type DeviceList = Arc<Mutex<Vec<WebDevice>>>;
 
 static LOG_FILE: &str = "rustPing_running.log";
 
@@ -93,10 +93,10 @@ async fn login_page() -> Option<NamedFile> {
 
 // API to add a device.
 #[post("/add_device", data = "<device>")]
-async fn add_device(device: Json<Device>, devices: &State<SharedDevices>) -> &'static str {
+async fn add_model_device(device: Json<ModelDevice>, devices: &State<SharedDevices>) -> &'static str {
     let mut dev = device.into_inner();
     if dev.sensors.contains(&SensorType::Ping) {
-        let status = monitor_ping(&dev.ip).await;  // Borrow dev.ip
+        let status = monitor_ping(&dev.ip).await;
         dev.ping_status = Some(status);
     }
     let mut devices_locked = devices.lock().await;
@@ -106,7 +106,7 @@ async fn add_device(device: Json<Device>, devices: &State<SharedDevices>) -> &'s
 
 // API to get the list of devices.
 #[get("/devices")]
-async fn get_devices(_auth: Auth, devices: &State<SharedDevices>) -> Json<Vec<Device>> {
+async fn get_devices(_auth: Auth, devices: &State<SharedDevices>) -> Json<Vec<ModelDevice>> {
     let devices_locked = devices.lock().await;
     Json(devices_locked.clone())
 }
@@ -298,7 +298,7 @@ async fn logs_json() -> Json<serde_json::Value> {
 // Load devices from a JSON file.
 async fn add_devices_from_file(file_path: &str, devices: SharedDevices) {
     let data = fs::read_to_string(file_path).expect("Unable to read file");
-    let mut file_devices: Vec<Device> = from_str(&data).expect("JSON was not well-formatted");
+    let mut file_devices: Vec<ModelDevice> = from_str(&data).expect("JSON was not well-formatted");
     for dev in file_devices.iter_mut() {
         dev.ping_status = None;
         dev.bandwidth_usage = None;
@@ -365,6 +365,11 @@ async fn protected_password(_auth: Auth) -> Option<NamedFile> {
     NamedFile::open(Path::new("static/password-manager.html")).await.ok()
 }
 
+#[get("/static/manage-devices.html")]
+async fn manage_device(_auth: Auth) -> Option<NamedFile> {
+    NamedFile::open(Path::new("static/manage-devices.html")).await.ok()
+}
+
 #[derive(Deserialize)]
 struct PasswordUpdate {
     hash: String,
@@ -382,6 +387,127 @@ async fn update_password(_auth: Auth, update: Json<PasswordUpdate>) -> Status {
     match fs::write(config_path, config_content) {
         Ok(_) => Status::Ok,
         Err(_) => Status::InternalServerError,
+    }
+}
+
+// Web Device struct - this is separate from the model Device
+#[derive(Serialize, Deserialize, Clone)]
+struct WebDevice {
+    name: String,
+    ip: String,
+    category: String,
+    sensors: Vec<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    http_path: Option<String>,
+}
+
+// Endpoint to add devices from the web UI
+#[post("/devices", data = "<device>")]
+async fn add_web_device(device: Json<WebDevice>) -> Status {
+    // Read existing devices
+    let file_path = "devices.json";
+    let mut devices = match fs::read_to_string(file_path) {
+        Ok(content) => match serde_json::from_str::<Vec<WebDevice>>(&content) {
+            Ok(existing) => existing,
+            Err(e) => {
+                error!("Failed to parse devices.json: {}", e);
+                return Status::InternalServerError;
+            }
+        },
+        Err(e) => {
+            error!("Failed to read devices.json: {}", e);
+            return Status::InternalServerError;
+        }
+    };
+
+    // Add new device
+    devices.push(device.into_inner());
+
+    // Write back to file
+    match serde_json::to_string_pretty(&devices) {
+        Ok(json) => {
+            if let Err(e) = fs::write(file_path, json) {
+                error!("Failed to write devices.json: {}", e);
+                return Status::InternalServerError;
+            }
+        },
+        Err(e) => {
+            error!("Failed to serialize devices: {}", e);
+            return Status::InternalServerError;
+        }
+    }
+
+    Status::Created
+}
+
+#[delete("/devices/<index>")]
+async fn delete_web_device(index: usize) -> Status {
+    let file_path = "devices.json";
+    
+    // Read existing devices
+    let content = match fs::read_to_string(file_path) {
+        Ok(content) => content,
+        Err(e) => {
+            error!("Failed to read devices.json: {}", e);
+            return Status::InternalServerError;
+        }
+    };
+    
+    let mut devices: Vec<WebDevice> = match serde_json::from_str(&content) {
+        Ok(devices) => devices,
+        Err(e) => {
+            error!("Failed to parse devices.json: {}", e);
+            return Status::InternalServerError;
+        }
+    };
+    
+    // Check if index is valid
+    if index >= devices.len() {
+        return Status::NotFound;
+    }
+    
+    // Remove device at the specified index
+    devices.remove(index);
+    
+    // Write updated devices back to file
+    match serde_json::to_string_pretty(&devices) {
+        Ok(json) => {
+            if let Err(e) = fs::write(file_path, json) {
+                error!("Failed to write devices.json: {}", e);
+                return Status::InternalServerError;
+            }
+        },
+        Err(e) => {
+            error!("Failed to serialize devices: {}", e);
+            return Status::InternalServerError;
+        }
+    }
+    
+    Status::Ok
+}
+
+// Add this function to reload devices from file
+async fn reload_devices_from_file(file_path: &str, devices: SharedDevices) {
+    match fs::read_to_string(file_path) {
+        Ok(data) => {
+            match from_str::<Vec<ModelDevice>>(&data) {
+                Ok(mut file_devices) => {
+                    // Initialize device status fields to None
+                    for dev in file_devices.iter_mut() {
+                        dev.ping_status = None;
+                        dev.bandwidth_usage = None;
+                        dev.http_status = None;
+                    }
+                    
+                    // Update the shared devices list
+                    let mut devices_locked = devices.lock().await;
+                    *devices_locked = file_devices;
+                    info!("Devices reloaded from file: {}", file_path);
+                },
+                Err(e) => error!("Failed to parse devices file: {}", e)
+            }
+        },
+        Err(e) => error!("Failed to read devices file: {}", e)
     }
 }
 
@@ -405,18 +531,32 @@ async fn main() {
             protected_index,
             protected_failed_logs,
             protected_log_view,
-            add_device,
+            add_model_device,
             get_devices,
             export_log,
             logs_json,
             failed_logs,
             protected_password,
             update_password,
+            add_web_device,
+            delete_web_device,
+            manage_device,
         ])
         .register("/", catchers![unauthorized]);
 
-
     add_devices_from_file("devices.json", devices.clone()).await;
+
+    // Spawn a periodic task to reload devices
+    let devices_for_reload = devices.clone();
+    tokio::spawn(async move {
+        loop {
+            // Wait for 30 seconds
+            sleep(Duration::from_secs(30)).await;
+            
+            // Reload devices
+            reload_devices_from_file("devices.json", devices_for_reload.clone()).await;
+        }
+    });
 
     // Track last logged date.
     let mut last_log_date = String::new();
@@ -437,7 +577,7 @@ async fn main() {
                 let (ip, name, sensors, http_path) = {
                     let locked = devices_clone.lock().await;
                     if let Some(dev) = locked.get(i) {
-                        (dev.ip.clone(), dev.name.clone(), dev.sensors.clone(), dev.http_path.clone()) // Clone ip
+                        (dev.ip.clone(), dev.name.clone(), dev.sensors.clone(), dev.http_path.clone())
                     } else {
                         continue;
                     }
@@ -448,7 +588,7 @@ async fn main() {
                     // Perform multiple ping attempts
                     let mut success_count = 0;
                     for _ in 0..5 {
-                        if monitor_ping(&ip).await { // Borrow &ip
+                        if monitor_ping(&ip).await {
                             success_count += 1;
                         }
                         sleep(Duration::from_millis(500)).await;
@@ -512,7 +652,7 @@ async fn main() {
                 }
 
                 let locked = devices_clone.lock().await;
-                let _status_map = status_map_clone.lock().await;  //Add _
+                let _status_map = status_map_clone.lock().await;
 
                 for dev in locked.iter() {
                     // Format the log entry
