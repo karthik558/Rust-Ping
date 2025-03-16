@@ -22,14 +22,17 @@ RustPing is a powerful, real-time network monitoring tool built with Rust and th
 *   **🌙 / ☀️  Dark/Light Mode:** Choose the theme that suits your preference.
 *   **📅 Log Export:** Export logs in CSV or TXT format for offline analysis.
 *   **🔐 User Authentication:** Secure access with a login system (and planned role-based access).
+*   **📱 Responsive Design:**  Works seamlessly on various devices, including desktops and tablets.
+*   **🛠️ Device Dashboard** Users can add devices from front-end itself without editing the JSON.
 
 ## 🚧 Roadmap
 
 These features are planned for future development:
 
+*   **✅ Upcoming: User authentication and role-based access control:**  Control access and permissions.
+*   **✅ Upcoming: Add device management features:**  Add, remove, and edit devices from the dashboard.
 *   **🔴 Upcoming: New Sensors (TCP, UDP, etc.):**  Expand monitoring capabilities.
 *   **🔴 Upcoming: Email/SMS Notifications:**  Get alerts for critical device status changes.
-*   **✅ Upcoming: User authentication and role-based access control:**  Control access and permissions.
 *   **🔴 Upcoming: Docker Support:** Simplify deployment and portability.
 *   **🔴 Upcoming: Mobile App:** Monitor your network on the go.
 
@@ -37,11 +40,13 @@ These features are planned for future development:
 
 | Dark Mode                                  | Light Mode                                    |
 | :----------------------------------------- | :-------------------------------------------- |
-| ![Dashboard-Dark](screenshots/dashboardHome-dark.png) | ![Dashboard-Light](screenshots/dashboardHome-light.png) |
-| ![Live-Log-Dark](screenshots/liveLog-dark.png)     | ![Live-Log-Light](screenshots/liveLog-light.png)     |
-| ![Fail-Log-Dark](screenshots/failedLog-dark.png)   | ![Fail-Log-Light](screenshots/failedLog-light.png)   |
-| ![Login-Dark](screenshots/loginDark.png)        | ![Login-Light](screenshots/loginLight.png)          |
-| ![Pass-Reset-Dark](screenshots/passReset-dark.png) | ![Pass-Reset-Light](screenshots/passReset-light.png)  |
+| ![Auth-Dark](screenshots/authLogin-dark.png)          | ![Auth-Light](screenshots/authLogin-light.png)     |
+| ![Login-Dark](screenshots/loginDark.png)              | ![Login-Light](screenshots/loginLight.png)|
+| ![Pass-Reset-Dark](screenshots/passReset-dark.png)    | ![Pass-Reset-Light](screenshots/passReset-light.png)  |
+| ![Device-Dark](screenshots/devDashBoard-dark.png)     | ![Device-Light](screenshots/devDashBoard-light.png) |
+| ![Dashboard-Dark](screenshots/dashboardHome-dark.png) | ![Dashboard-Light](screenshots/dashboardHome-light.png)   |
+| ![Live-Log-Dark](screenshots/liveLog-dark.png)        | ![Live-Log-Light](screenshots/liveLog-light.png)     |
+| ![Fail-Log-Dark](screenshots/failedLog-dark.png)      | ![Fail-Log-Light](screenshots/failedLog-light.png)   |
 
 ## 📖 Table of Contents
 
@@ -52,6 +57,7 @@ These features are planned for future development:
 *   [Default Password](#-default-password-for-webui)
 *   [Configuration](#-configuration)
 *   [Usage](#-usage)
+*   [Adding Devices](#-adding-devices)
 *   [API Endpoints](#-api-endpoints)
 *   [Contributing](#-contributing)
 *   [License](#-license)
@@ -147,7 +153,7 @@ These features are planned for future development:
 
 **Important:** Change the default password immediately after your first login for security reasons!
 
-## ⚙️ Configuration
+## ⚙️ Configuration (Optional)
 
 The `devices.json` file in the project's root directory controls which devices are monitored.  Edit this file to add, remove, or modify devices.  The file uses JSON format:
 
@@ -186,6 +192,13 @@ The `devices.json` file in the project's root directory controls which devices a
 4.  **View Details:** Click on entries in the tables to see more detailed information.
 5. **Export Logs:** Use the log export form to generate CSV or TXT files of your monitoring data.
 
+## 🖥️ Adding Devices
+1.  **Access the Dashboard:** Open `http://127.0.0.1:8000/static/manage-devices.html` in your web browser.
+2.  **Add Device:** Fill in the form with the device's name, IP address, Category, and sensors.  Click "Add Device" to save it to the `devices.json` file.
+3. **View Devices:** After adding devices, you can view them listed on the dashboard. (Note: this will be updated in real-time without needing to refresh the page but wait for a few seconds for the changes to reflect).
+4. **Edit Device:** Click on the device name to edit its details.  You can change the name, IP address, and sensors. (Note: Cant edit the category for now).
+5. **Delete Device:** Click on the "Delete" button next to the device you want to remove.  Confirm the deletion in the popup dialog.
+
 ## 📡 API Endpoints
 
 RustPing provides a REST API for interacting with the application programmatically.
@@ -202,6 +215,9 @@ RustPing provides a REST API for interacting with the application programmatical
 | `POST`  | `/update-password`           | Updates the user's password.                   |
 | `POST` | `/login` | For user login. |
 | `GET`    | `/logout`                     | Logs the current user out.                      |
+| `POST` | `/add_device`                | Adds a new device to the `devices.json` file.   |
+| `POST` | `/delete_device`             | Deletes a device from the `devices.json` file.  |
+| `POST` | `/update_device`             | Updates an existing device in the `devices.json` file. |
 
 ## 🤝 Contributing
 
