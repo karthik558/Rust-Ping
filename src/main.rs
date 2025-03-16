@@ -8,7 +8,7 @@ use rocket::{get, post, delete, routes, State, response::Redirect, catch, catche
 use rocket::serde::json::Json;
 use rocket::fs::{NamedFile, FileServer, relative};
 use models::{Device as ModelDevice, SensorType};
-use log::{info, error};
+use log::{info, error, debug};
 use sensors::{monitor_ping, monitor_http};
 use std::fs::{self, OpenOptions};
 use std::io::{Read, Write};
@@ -568,94 +568,60 @@ async fn main() {
 
     tokio::spawn(async move {
         loop {
-            let indices: Vec<usize> = {
+            let devices_to_monitor: Vec<ModelDevice> = {
                 let locked = devices_clone.lock().await;
-                (0..locked.len()).collect()
+                locked.clone()
             };
 
-            for i in indices {
-                let (ip, name, sensors, http_path) = {
-                    let locked = devices_clone.lock().await;
-                    if let Some(dev) = locked.get(i) {
-                        (dev.ip.clone(), dev.name.clone(), dev.sensors.clone(), dev.http_path.clone())
-                    } else {
-                        continue;
+            for dev in devices_to_monitor {
+                let mut updated_dev = dev.clone();
+                
+                // Always perform ping check regardless of sensor configuration
+                match monitor_ping(&updated_dev.ip).await {
+                    true => {
+                        debug!("Ping successful for {} ({})", updated_dev.name, updated_dev.ip);
+                        updated_dev.ping_status = Some(true);
+                    },
+                    false => {
+                        error!("Ping failed for {} ({})", updated_dev.name, updated_dev.ip);
+                        updated_dev.ping_status = Some(false);
                     }
-                };
-
-                let mut ping_status = None;
-                if sensors.contains(&SensorType::Ping) {
-                    // Perform multiple ping attempts
-                    let mut success_count = 0;
-                    for _ in 0..5 {
-                        if monitor_ping(&ip).await {
-                            success_count += 1;
-                        }
-                        sleep(Duration::from_millis(500)).await;
-                    }
-
-                    let current_status = success_count >= 3;
-                    ping_status = Some(current_status);
-
-                    // Update the status tracking
-                    let mut status_map = status_map_clone.lock().await;
-                    let device_status = status_map.entry(name.clone()).or_insert_with(DeviceStatus::new);
-
-                    if !current_status {
-                        device_status.failed_attempts += 1;
-                    } else {
-                        device_status.failed_attempts = 0;
-                    }
-                    device_status.last_status = current_status;
                 }
 
-                let bandwidth_usage = if sensors.contains(&SensorType::Http) {
-                    Some(rand::thread_rng().gen_range(10.0..1000.0))
-                } else {
-                    None
-                };
-
-                let http_status = if sensors.contains(&SensorType::Http) {
-                    if let Some(ref url) = http_path {
-                        Some(monitor_http(url).await)
-                    } else {
-                        None
+                // HTTP and bandwidth checks only if configured
+                if updated_dev.sensors.contains(&SensorType::Http) || updated_dev.sensors.contains(&SensorType::Https) {
+                    if let Some(ref url) = updated_dev.http_path {
+                        updated_dev.http_status = Some(monitor_http(url).await);
+                        updated_dev.bandwidth_usage = Some(rand::thread_rng().gen_range(10.0..1000.0));
                     }
-                } else {
-                    None
-                };
+                }
 
-                {
-                    let mut locked = devices_clone.lock().await;
-                    if let Some(dev) = locked.get_mut(i) {
-                        dev.ping_status = ping_status;
-                        dev.bandwidth_usage = bandwidth_usage;
-                        dev.http_status = http_status;
-                    }
+                // Update device in shared state
+                let mut devices_locked = devices_clone.lock().await;
+                if let Some(existing_dev) = devices_locked.iter_mut().find(|d| d.ip == updated_dev.ip) {
+                    existing_dev.ping_status = updated_dev.ping_status;
+                    existing_dev.http_status = updated_dev.http_status;
+                    existing_dev.bandwidth_usage = updated_dev.bandwidth_usage;
                 }
             }
 
-            // Get current timestamp and date.
-            let now: DateTime<Local> = Local::now();
-            let timestamp = now.format("%Y-%m-%d %H:%M:%S").to_string();
-            let today = now.format("%Y-%m-%d").to_string();
-
-            // Open the log file for appending.
+            // Write to log file
             if let Ok(mut file) = OpenOptions::new().append(true).create(true).open(LOG_FILE) {
+                let now: DateTime<Local> = Local::now();
+                let timestamp = now.format("%Y-%m-%d %H:%M:%S").to_string();
+                let today = now.format("%Y-%m-%d").to_string();
+
                 // Write header if needed
                 if last_log_date != today {
-                    let header = format!("// {}\n", today);
-                    if let Err(e) = file.write_all(header.as_bytes()) {
-                        error!("Failed to write header: {}", e);
+                    if let Err(e) = writeln!(file, "// {}", today) {
+                        error!("Failed to write log header: {}", e);
                     }
-                    last_log_date = today.clone();
+                    last_log_date = today;
                 }
 
-                let locked = devices_clone.lock().await;
-                let _status_map = status_map_clone.lock().await;
-
-                for dev in locked.iter() {
-                    // Format the log entry
+                // Log each device status
+                let devices_locked = devices_clone.lock().await;
+                for dev in devices_locked.iter() {
                     let log_entry = format!(
                         "{} - {} ({}): Ping: {}, HTTP: {}, Bandwidth: {}\n",
                         timestamp,
@@ -666,20 +632,17 @@ async fn main() {
                         dev.bandwidth_usage.map_or("N/A".to_string(), |b| format!("{:.2} Mbps", b))
                     );
 
-                    // Write the log entry
                     if let Err(e) = file.write_all(log_entry.as_bytes()) {
                         error!("Failed to write log entry: {}", e);
                     }
                 }
-                // Flush
+                
                 if let Err(e) = file.flush() {
                     error!("Failed to flush log file: {}", e);
                 }
-            } else {
-                error!("Failed to open log file for writing");
             }
-            // Add 5 second delay after checking all devices
-            info!("Completed monitoring cycle, waiting 5 seconds before next cycle");
+
+            // Wait before next monitoring cycle
             sleep(Duration::from_secs(5)).await;
         }
     });

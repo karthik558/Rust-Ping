@@ -409,9 +409,6 @@ body.dark-mode {
     position: relative;
 }
 
-/* --- Log Export Section --- */
-.log-export-section {}
-
 .card {
     background-color: var(--card-background-light);
     box-shadow: var(--box-shadow);
