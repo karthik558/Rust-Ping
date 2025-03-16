@@ -186,17 +186,28 @@ body.dark-mode {
 
 /* Logout Button Style */
 .logout-button {
-    background-color: var(--logout-color); /* Use the defined variable */
+    background-color: var(--logout-color);
     color: white;
-    border-color: var(--logout-color);  /* Consistent border */
-    margin-left: auto; /* Push to the right */
+    border-color: var(--logout-color);
+    margin-left: auto; 
 }
 
 .logout-button:hover {
-    background-color: var(--logout-hover-color); /* Use the defined variable */
+    background-color: var(--logout-hover-color);
     border-color: var(--logout-hover-color);
+    color: white;
 }
 
+.dark-mode .logout-button {
+    background-color: var(--logout-color);
+    border-color: var(--logout-color);
+    color: white;
+}
+.dark-mode .logout-button:hover {
+    background-color: var(--logout-hover-color);
+    border-color: var(--logout-hover-color);
+    color: white;
+}
 
 /* --- Filter Input --- */
 .filter-input {

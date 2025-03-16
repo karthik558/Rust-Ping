@@ -9,6 +9,23 @@ async function hashPassword(password) {
     return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
+// Add session timeout handling
+let inactivityTimer;
+const TIMEOUT_MINUTES = 15;
+
+function resetInactivityTimer() {
+    clearTimeout(inactivityTimer);
+    inactivityTimer = setTimeout(logout, TIMEOUT_MINUTES * 60 * 1000);
+}
+
+function setupInactivityDetection() {
+    // Reset timer on user activity
+    ['click', 'keypress', 'scroll', 'mousemove'].forEach(event => {
+        document.addEventListener(event, resetInactivityTimer);
+    });
+    resetInactivityTimer();
+}
+
 // Handle authentication
 async function handleLogin(event) {
     event.preventDefault();
@@ -20,8 +37,8 @@ async function handleLogin(event) {
     
     // Compare with stored hash from config
     if (username === AUTH_CONFIG.username && hashedPassword === AUTH_CONFIG.passwordHash) {
-        // Set authentication cookie with 2-minute expiration
-        document.cookie = `auth=true;max-age=120;path=/`;
+        // Set authentication cookie with 15-minute expiration
+        document.cookie = `auth=true;max-age=${TIMEOUT_MINUTES * 60};path=/`;
 
         // Show welcome overlay
         const overlay = document.getElementById('welcomeOverlay');
@@ -44,6 +61,11 @@ async function handleLogin(event) {
         errorMsg.style.display = 'block';
     }
     return false;
+}
+
+function logout() {
+    document.cookie = "auth=true; max-age=0; path=/";
+    window.location.href = '/static/login.html';
 }
 
 // Check session timeout
@@ -98,6 +120,11 @@ function updateWelcomeLogo(isDarkMode) {
   }
 }
 
+// Function to reload the current page
+function reloadCurrentPage() {
+  window.location.reload();
+}
+
 // Check for saved dark mode preference on page load, and handle forgot password
 document.addEventListener('DOMContentLoaded', () => {
   const isDarkMode = localStorage.getItem('darkMode') === 'true';
@@ -113,5 +140,10 @@ document.addEventListener('DOMContentLoaded', () => {
       event.preventDefault(); // Prevent default link behavior
       window.location.href = 'https://karthiklal.in/contact.html';
     });
+  }
+
+  // Initialize inactivity detection if authenticated
+  if (document.cookie.includes('auth=true')) {
+    setupInactivityDetection();
   }
 });

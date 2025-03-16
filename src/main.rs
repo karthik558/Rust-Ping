@@ -4,7 +4,7 @@ extern crate rocket;
 mod models;
 mod sensors;
 
-use rocket::{get, post, routes, State, response::Redirect};
+use rocket::{get, post, routes, State, response::Redirect, catch, catchers};
 use rocket::serde::json::Json;
 use rocket::fs::{NamedFile, FileServer, relative};
 use models::{Device, SensorType};
@@ -332,10 +332,15 @@ impl<'r> FromRequest<'r> for Auth {
         
         match cookies.get("auth") {
             Some(cookie) if cookie.value() == "true" => Outcome::Success(Auth),
-            Some(_) => Outcome::Error((rocket::http::Status::Unauthorized, AuthError::Invalid)),
-            None => Outcome::Error((rocket::http::Status::Unauthorized, AuthError::Missing))
+            _ => Outcome::Forward(Status::Unauthorized)
         }
     }
+}
+
+// Add catch handler for unauthorized requests
+#[catch(401)]
+fn unauthorized() -> Redirect {
+    Redirect::to("/static/login.html")
 }
 
 // Protected routes
@@ -406,7 +411,8 @@ async fn main() {
             failed_logs,
             protected_password,
             update_password,
-        ]);
+        ])
+        .register("/", catchers![unauthorized]);
 
 
     add_devices_from_file("devices.json", devices.clone()).await;

@@ -458,36 +458,36 @@ document.addEventListener("DOMContentLoaded", () => {
   updateSortIcons();
 });
 
+// Check authentication and setup inactivity detection
+document.addEventListener('DOMContentLoaded', function () {
+  if (!document.cookie.includes('auth=true')) {
+    window.location.href = '/static/login.html';
+    return;
+  }
+
+  // Reset inactivity timer on user activity
+  let inactivityTimer;
+  const TIMEOUT_MINUTES = 15;
+
+  function resetInactivityTimer() {
+    clearTimeout(inactivityTimer);
+    inactivityTimer = setTimeout(logout, TIMEOUT_MINUTES * 60 * 1000);
+  }
+
+  ['click', 'keypress', 'scroll', 'mousemove'].forEach(event => {
+    document.addEventListener(event, resetInactivityTimer);
+  });
+  resetInactivityTimer();
+});
+
 function logout() {
-    // Clear the auth cookie
-    document.cookie = "auth=true; max-age=0; path=/";
-    // Redirect to login page
-    window.location.href = "/static/login.html";
+  document.cookie = "auth=true; max-age=0; path=/";
+  window.location.href = '/static/login.html';
 }
 
 function resetPassword() {
-    // Show password reset confirmation
-    if (confirm("Do you want to reset your password?")) {
-        window.location.href = "/static/password-manager.html";
-    }
+  // Show password reset confirmation
+  if (confirm("Do you want to reset your password?")) {
+    window.location.href = "/static/password-manager.html";
+  }
 }
-
-function reloadCurrentPage() {
-    // Reload the current page without redirecting
-    window.location.reload();
-}
-
-// Check authentication on page load
-document.addEventListener('DOMContentLoaded', function() {
-    if (!document.cookie.includes('auth=true')) {
-        window.location.href = '/static/login.html';
-    }
-});
-
-// Check session every 15 minutes
-setInterval(function() {
-    if (!document.cookie.includes('auth=true')) {
-        alert('Your session has expired. Please login again.');
-        window.location.href = '/static/login.html';
-    }
-}, 1500000);

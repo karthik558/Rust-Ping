@@ -146,6 +146,11 @@ function updateLogo(isDarkMode) {
     }
 }
 
+// Function to reload the current page
+function reloadCurrentPage() {
+    window.location.reload();
+}
+
 // Update logo based on dark mode
 function updateWelcomeLogo(isDarkMode) {
     const welcomeLogo = document.getElementById('welcomeLogoImage');
@@ -177,3 +182,30 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
+
+// Add to each protected page's <head> section
+document.addEventListener('DOMContentLoaded', function() {
+    if (!document.cookie.includes('auth=true')) {
+        window.location.href = '/static/login.html';
+        return;
+    }
+    
+    // Reset inactivity timer on user activity
+    let inactivityTimer;
+    const TIMEOUT_MINUTES = 15;
+
+    function resetInactivityTimer() {
+        clearTimeout(inactivityTimer);
+        inactivityTimer = setTimeout(logout, TIMEOUT_MINUTES * 60 * 1000);
+    }
+
+    ['click', 'keypress', 'scroll', 'mousemove'].forEach(event => {
+        document.addEventListener(event, resetInactivityTimer);
+    });
+    resetInactivityTimer();
+});
+
+function logout() {
+    document.cookie = "auth=true; max-age=0; path=/";
+    window.location.href = '/static/login.html';
+}
