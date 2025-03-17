@@ -91,12 +91,14 @@
                         compareB = b.device.toLowerCase();
                         break;
                     case 'ping':
-                        compareA = a.pingStatus.toLowerCase();
-                        compareB = b.pingStatus.toLowerCase();
+                        // Fix: Use the property name that matches your data object
+                        compareA = a.ping ? a.ping.toLowerCase() : ''; 
+                        compareB = b.ping ? b.ping.toLowerCase() : '';
                         break;
                     case 'http':
-                        compareA = a.httpStatus.toLowerCase();
-                        compareB = b.httpStatus.toLowerCase();
+                        // Fix: Use the property name that matches your data object
+                        compareA = a.http ? a.http.toLowerCase() : '';
+                        compareB = b.http ? b.http.toLowerCase() : '';
                         break;
                     default:
                         return 0;
