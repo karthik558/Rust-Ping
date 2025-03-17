@@ -9,7 +9,7 @@ env_logger = "0.10"
 log = "0.4"
 ping = "0.5"
 serde = { version = "1.0", features = ["derive"] }
-rocket = { version = "0.5.1", features = ["json"] }
+rocket = { version = "0.5", features = ["json"] }
 serde_json = "1.0"
 rand = "0.8"
 tokio = { version = "1", features = ["full"] }

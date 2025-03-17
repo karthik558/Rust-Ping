@@ -2,6 +2,8 @@ let devices = [];
 const LOCAL_STORAGE_KEY = 'rustping_devices';
 const DEVICES_FILE_PATH = 'devices.json';
 let initialDevicesLoaded = false;
+let isEditing = false;
+let editingDeviceId = null;
 
 // Load devices on page load
 document.addEventListener('DOMContentLoaded', () => {
@@ -214,6 +216,9 @@ function setupEventListeners() {
             }
         }
     });
+
+    // Add cancel button handler
+    document.getElementById('cancelButton').addEventListener('click', cancelEdit);
 }
 
 async function loadExistingCategories() {
@@ -286,41 +291,26 @@ async function loadExistingCategories() {
 }
 
 function renderDeviceList() {
-    const tbody = document.getElementById('deviceList');
-    tbody.innerHTML = '';
+    const deviceList = document.getElementById('deviceList');
+    deviceList.innerHTML = '';
 
     devices.forEach((device, index) => {
         const row = document.createElement('tr');
-        
-        // Create cells for device properties
-        const nameCell = document.createElement('td');
-        nameCell.textContent = device.name;
-        
-        const ipCell = document.createElement('td');
-        ipCell.textContent = device.ip;
-        
-        const categoryCell = document.createElement('td');
-        categoryCell.textContent = device.category;
-        
-        const sensorsCell = document.createElement('td');
-        sensorsCell.textContent = device.sensors.join(', ');
-        
-        const actionsCell = document.createElement('td');
-        const deleteButton = document.createElement('button');
-        deleteButton.className = 'button delete-button';
-        deleteButton.innerHTML = '<i class="fas fa-trash"></i>';
-        deleteButton.addEventListener('click', () => removeDevice(index));
-        
-        actionsCell.appendChild(deleteButton);
-        
-        // Append all cells to the row
-        row.appendChild(nameCell);
-        row.appendChild(ipCell);
-        row.appendChild(categoryCell);
-        row.appendChild(sensorsCell);
-        row.appendChild(actionsCell);
-        
-        tbody.appendChild(row);
+        row.innerHTML = `
+            <td>${device.name}</td>
+            <td>${device.ip}</td>
+            <td>${device.category}</td>
+            <td>${device.sensors.join(', ')}</td>
+            <td>
+                <button class="button icon-button edit-button" onclick="editDevice(${index})">
+                    <i class="fas fa-edit"></i>
+                </button>
+                <button class="button icon-button delete-button" onclick="removeDevice(${index})">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </td>
+        `;
+        deviceList.appendChild(row);
     });
 }
 
@@ -548,3 +538,105 @@ function logout() {
     document.cookie = "auth=true; max-age=0; path=/";
     window.location.href = '/static/login.html';
 }
+
+let editingIndex = null;
+
+function editDevice(index) {
+    isEditing = true;
+    editingIndex = index;
+    const device = devices[index];
+
+    // Update form UI
+    document.getElementById('formTitle').textContent = 'Edit Device';
+    document.getElementById('submitButtonText').textContent = 'Update Device';
+    document.getElementById('cancelButton').style.display = 'inline-flex';
+
+    // Fill form with device data
+    document.getElementById('deviceName').value = device.name;
+    document.getElementById('deviceIP').value = device.ip;
+    document.getElementById('deviceCategory').value = device.category;
+
+    // Handle sensors
+    const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+    checkboxes.forEach(cb => {
+        cb.checked = device.sensors.includes(cb.value);
+    });
+
+    // Handle HTTP path
+    const httpPathGroup = document.querySelector('.http-path-group');
+    const hasHttp = device.sensors.includes('Http') || device.sensors.includes('Https');
+    httpPathGroup.style.display = hasHttp ? 'block' : 'none';
+    if (hasHttp) {
+        document.getElementById('httpPath').value = device.http_path || '';
+    }
+
+    // Scroll to form
+    document.getElementById('deviceForm').scrollIntoView({ behavior: 'smooth' });
+}
+
+// Update form submission handler
+document.getElementById('deviceForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const formData = {
+        name: document.getElementById('deviceName').value,
+        ip: document.getElementById('deviceIP').value,
+        category: document.getElementById('deviceCategory').value === 'Custom' 
+            ? document.getElementById('customCategory').value 
+            : document.getElementById('deviceCategory').value,
+        sensors: Array.from(document.querySelectorAll('input[type="checkbox"]:checked'))
+            .map(cb => cb.value),
+        http_path: document.getElementById('httpPath').value || null
+    };
+
+    try {
+        if (isEditing && editingIndex !== null) {
+            // Update existing device
+            const response = await fetch(`/devices/${editingIndex}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(formData)
+            });
+
+            if (!response.ok) throw new Error('Failed to update device');
+            
+            // Update local array
+            devices[editingIndex] = formData;
+            showNotification('Device updated successfully', 'success');
+        } else {
+            // Add new device
+            const response = await fetch('/devices', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(formData)
+            });
+
+            if (!response.ok) throw new Error('Failed to add device');
+            
+            devices.push(formData);
+            showNotification('Device added successfully', 'success');
+        }
+
+        // Reset form and update UI
+        cancelEdit();
+        await loadDevices(); // Refresh the device list
+    } catch (error) {
+        console.error('Error:', error);
+        showNotification(error.message, 'error');
+    }
+});
+
+function cancelEdit() {
+    isEditing = false;
+    editingIndex = null;
+    
+    document.getElementById('formTitle').textContent = 'Add Device';
+    document.getElementById('submitButtonText').textContent = 'Add Device';
+    document.getElementById('cancelButton').style.display = 'none';
+    document.getElementById('deviceForm').reset();
+    
+    document.querySelector('.http-path-group').style.display = 'none';
+}
+
+// Add cancel button handler
+document.getElementById('cancelButton').addEventListener('click', cancelEdit);

@@ -34,8 +34,9 @@
         <main class="main-content">
             <section class="device-management-section">  <!--  Keep the specific section class -->
                 <div class="card">
-                    <h2 class="section-title">Manage Devices</h2>
+                    <h2 class="section-title" id="formTitle">Add Device</h2>
                     <form id="deviceForm" class="device-form">
+                        <input type="hidden" id="deviceId">
                         <div class="form-group">
                             <label for="deviceName">Device Name</label>
                             <input type="text" id="deviceName" required>
@@ -77,8 +78,11 @@
                             <input type="url" id="httpPath" placeholder="http://example.com">
                         </div>
                         <div class="button-group">
-                            <button type="submit" class="button primary-button">
-                                <i class="fas fa-plus"></i> Add Device
+                            <button type="submit" class="button primary-button" id="submitButton">
+                                <i class="fas fa-plus"></i> <span id="submitButtonText">Add Device</span>
+                            </button>
+                            <button type="button" class="button secondary-button" id="cancelButton" style="display: none;">
+                                <i class="fas fa-times"></i> Cancel
                             </button>
                         </div>
                     </form>

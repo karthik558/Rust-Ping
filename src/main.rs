@@ -4,7 +4,7 @@ extern crate rocket;
 mod models;
 mod sensors;
 
-use rocket::{get, post, delete, routes, State, response::Redirect, catch, catchers};
+use rocket::{get, post, delete, put, routes, State, response::Redirect, catch, catchers};
 use rocket::serde::json::Json;
 use rocket::fs::{NamedFile, FileServer, relative};
 use models::{Device as ModelDevice, SensorType};
@@ -420,41 +420,78 @@ struct WebDevice {
 
 // Endpoint to add devices from the web UI
 #[post("/devices", data = "<device>")]
-async fn add_web_device(device: Json<WebDevice>) -> Status {
-    // Read existing devices
+async fn add_web_device(device: &str, devices: &State<SharedDevices>) -> Status {
+    let new_device: WebDevice = match serde_json::from_str(device) {
+        Ok(dev) => dev,
+        Err(e) => {
+            error!("Failed to parse device JSON: {}", e);
+            return Status::BadRequest;
+        }
+    };
+
+    // Read current devices from file
     let file_path = "devices.json";
-    let mut devices = match fs::read_to_string(file_path) {
-        Ok(content) => match serde_json::from_str::<Vec<WebDevice>>(&content) {
-            Ok(existing) => existing,
-            Err(e) => {
-                error!("Failed to parse devices.json: {}", e);
-                return Status::InternalServerError;
-            }
-        },
+    let content = match fs::read_to_string(file_path) {
+        Ok(content) => content,
         Err(e) => {
             error!("Failed to read devices.json: {}", e);
             return Status::InternalServerError;
         }
     };
 
-    // Add new device
-    devices.push(device.into_inner());
-
-    // Write back to file
-    match serde_json::to_string_pretty(&devices) {
-        Ok(json) => {
-            if let Err(e) = fs::write(file_path, json) {
-                error!("Failed to write devices.json: {}", e);
-                return Status::InternalServerError;
-            }
-        },
+    let mut file_devices: Vec<WebDevice> = match serde_json::from_str(&content) {
+        Ok(devices) => devices,
         Err(e) => {
-            error!("Failed to serialize devices: {}", e);
+            error!("Failed to parse devices.json: {}", e);
             return Status::InternalServerError;
         }
+    };
+
+    // Check for duplicates before adding
+    if file_devices.iter().any(|d| d.name == new_device.name || d.ip == new_device.ip) {
+        error!("Device with same name or IP already exists");
+        return Status::Conflict;
     }
 
-    Status::Created
+    // Add new device to file array
+    file_devices.push(new_device.clone());
+
+    // Write to file atomically
+    let temp_path = format!("{}.tmp", file_path);
+    if let Ok(json) = serde_json::to_string_pretty(&file_devices) {
+        if let Err(e) = fs::write(&temp_path, &json) {
+            error!("Failed to write temporary file: {}", e);
+            return Status::InternalServerError;
+        }
+        if let Err(e) = fs::rename(&temp_path, file_path) {
+            error!("Failed to rename temporary file: {}", e);
+            return Status::InternalServerError;
+        }
+    } else {
+        return Status::InternalServerError;
+    }
+
+    // Add to in-memory devices only after successful file write
+    let mut devices_locked = devices.lock().await;
+    devices_locked.push(ModelDevice {
+        name: new_device.name,
+        ip: new_device.ip,
+        category: new_device.category,
+        sensors: new_device.sensors.iter()
+            .map(|s| match s.as_str() {
+                "Ping" => SensorType::Ping,
+                "Http" => SensorType::Http,
+                "Https" => SensorType::Https,
+                _ => SensorType::Ping
+            })
+            .collect(),
+        http_path: new_device.http_path,
+        ping_status: None,
+        http_status: None,
+        bandwidth_usage: None,
+    });
+
+    Status::Ok
 }
 
 #[delete("/devices/<index>")]
@@ -500,6 +537,92 @@ async fn delete_web_device(index: usize) -> Status {
         }
     }
     
+    Status::Ok
+}
+
+// Update the update_device endpoint
+#[put("/devices/<id>", data = "<device>")]
+async fn update_device(id: usize, device: &str, devices: &State<SharedDevices>) -> Status {
+    let updated_device: WebDevice = match serde_json::from_str(device) {
+        Ok(dev) => dev,
+        Err(e) => {
+            error!("Failed to parse device JSON: {}", e);
+            return Status::BadRequest;
+        }
+    };
+
+    // Read current devices from file
+    let file_path = "devices.json";
+    let content = match fs::read_to_string(file_path) {
+        Ok(content) => content,
+        Err(e) => {
+            error!("Failed to read devices.json: {}", e);
+            return Status::InternalServerError;
+        }
+    };
+
+    let mut file_devices: Vec<WebDevice> = match serde_json::from_str(&content) {
+        Ok(devices) => devices,
+        Err(e) => {
+            error!("Failed to parse devices.json: {}", e);
+            return Status::InternalServerError;
+        }
+    };
+
+    // Check if index is valid
+    if id >= file_devices.len() {
+        error!("Device index {} out of bounds", id);
+        return Status::NotFound;
+    }
+
+    // Check for duplicates (excluding current device)
+    if file_devices.iter().enumerate().any(|(i, d)| 
+        i != id && (d.name == updated_device.name || d.ip == updated_device.ip)
+    ) {
+        error!("Device with same name or IP already exists");
+        return Status::Conflict;
+    }
+
+    // Update device in file array
+    file_devices[id] = updated_device.clone();
+
+    // Write to file atomically
+    let temp_path = format!("{}.tmp", file_path);
+    if let Ok(json) = serde_json::to_string_pretty(&file_devices) {
+        if let Err(e) = fs::write(&temp_path, &json) {
+            error!("Failed to write temporary file: {}", e);
+            return Status::InternalServerError;
+        }
+        if let Err(e) = fs::rename(&temp_path, file_path) {
+            error!("Failed to rename temporary file: {}", e);
+            return Status::InternalServerError;
+        }
+    } else {
+        return Status::InternalServerError;
+    }
+
+    // Update in-memory device
+    let mut devices_locked = devices.lock().await;
+    if id < devices_locked.len() {
+        devices_locked[id] = ModelDevice {
+            name: updated_device.name,
+            ip: updated_device.ip,
+            category: updated_device.category,
+            sensors: updated_device.sensors.iter()
+                .map(|s| match s.as_str() {
+                    "Ping" => SensorType::Ping,
+                    "Http" => SensorType::Http,
+                    "Https" => SensorType::Https,
+                    _ => SensorType::Ping
+                })
+                .collect(),
+            http_path: updated_device.http_path,
+            ping_status: None,
+            http_status: None,
+            bandwidth_usage: None,
+        };
+    }
+
     Status::Ok
 }
 
@@ -558,6 +681,7 @@ async fn main() {
             add_web_device,
             delete_web_device,
             manage_device,
+            update_device,
         ])
         .register("/", catchers![unauthorized]);
 
@@ -575,13 +699,8 @@ async fn main() {
         }
     });
 
-    // Track last logged date.
-    let mut last_log_date = String::new();
-
     // Spawn a background task.
     let devices_clone = devices.clone();
-    let device_status_map: DeviceStatusMap = Arc::new(Mutex::new(HashMap::new()));
-    let status_map_clone = device_status_map.clone();
 
     tokio::spawn(async move {
         let mut device_statuses: HashMap<String, DeviceStatus> = HashMap::new();
