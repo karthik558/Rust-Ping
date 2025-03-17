@@ -6,6 +6,24 @@ let isFetching = false;
 let sortOrder = {}; // Keep track of sorting
 let currentCategory = 'all';
 let deviceStatuses = new Map();
+let categoryHealthChart = null;
+let categoryHealthData = {
+  labels: [],
+  datasets: [
+    {
+      label: 'Up',
+      data: []
+    },
+    {
+      label: 'Down',
+      data: []
+    },
+    {
+      label: 'Unknown',
+      data: []
+    }
+  ]
+};
 
 async function fetchDevices() {
   if (isFetching) return;
@@ -17,7 +35,6 @@ async function fetchDevices() {
     renderData(devices);
   } catch (error) {
     console.error("Error fetching devices:", error);
-    // Display an error message to the user.
     alert("Failed to fetch device data. Please check your connection and try again.");
   } finally {
     isFetching = false;
@@ -27,6 +44,7 @@ async function fetchDevices() {
 function renderData(devices) {
   updateTable(devices);
   updateBandwidthChart(devices);
+  updateCategoryHealthChart(devices);
   // Update pie chart if a device is selected, otherwise clear it.
   if (selectedDevice) {
     const device = devices.find(d => d.name === selectedDevice.name);
@@ -46,23 +64,23 @@ function renderData(devices) {
 function updateCategoryButtons(devices) {
   const categories = [...new Set(devices.map(device => device.category))];
   const buttonContainer = document.querySelector('.category-buttons');
-  
+
   // Only update category buttons if they don't exist
   if (buttonContainer.children.length <= 1) { // Account for "All Devices" button
-      // Keep the existing "All Devices" button
-      const existingButtons = buttonContainer.innerHTML;
-      
-      // Add category-specific buttons
-      const newButtons = categories.map(category => `
-          <button class="category-btn" data-category="${category}">${category}</button>
-      `).join('');
-      
-      buttonContainer.innerHTML = existingButtons + newButtons;
+    // Keep the existing "All Devices" button
+    const existingButtons = buttonContainer.innerHTML;
 
-      // Add click handlers to all buttons
-      buttonContainer.querySelectorAll('.category-btn').forEach(button => {
-          button.onclick = () => filterByCategory(button.getAttribute('data-category'));
-      });
+    // Add category-specific buttons
+    const newButtons = categories.map(category => `
+          <button class="category-btn btn btn-primary" data-category="${category}">${category}</button>
+      `).join('');
+
+    buttonContainer.innerHTML = existingButtons + newButtons;
+
+    // Add click handlers to all buttons
+    buttonContainer.querySelectorAll('.category-btn').forEach(button => {
+      button.onclick = () => filterByCategory(button.getAttribute('data-category'));
+    });
   }
 }
 
@@ -70,24 +88,24 @@ function updateCategoryButtons(devices) {
 function filterByCategory(category) {
   currentCategory = category;
   const buttons = document.querySelectorAll('.category-btn');
-  
+
   // Update button states
   buttons.forEach(btn => {
-      if (btn.getAttribute('data-category') === category) {
-          btn.classList.add('active');
-      } else {
-          btn.classList.remove('active');
-      }
+    if (btn.getAttribute('data-category') === category) {
+      btn.classList.add('active');
+    } else {
+      btn.classList.remove('active');
+    }
   });
 
   // Filter table rows
   const rows = document.querySelectorAll('#devices-table tbody tr');
   rows.forEach(row => {
-      if (category === 'all' || row.getAttribute('data-category') === category) {
-          row.style.display = '';
-      } else {
-          row.style.display = 'none';
-      }
+    if (category === 'all' || row.getAttribute('data-category') === category) {
+      row.style.display = '';
+    } else {
+      row.style.display = 'none';
+    }
   });
 }
 
@@ -133,26 +151,26 @@ function updateTable(devices) {
     if (Array.isArray(device.sensors)) {
       device.sensors.forEach(sensor => {
         const span = document.createElement("span");
-        span.className = "sensor-box";
+        span.className = "sensor-box badge badge-primary";
         span.textContent = sensor;
         sensorTd.appendChild(span);
       });
     } else {
-      sensorTd.textContent = "-"; // Handle cases where sensors might not be an array.
+      sensorTd.textContent = "-";
     }
     tr.appendChild(sensorTd);
 
     const pingStatus = device.ping_status;
-    const pingStatusClass = pingStatus === true ? "green" : pingStatus === false ? "red" : "yellow";
+    const pingStatusClass = pingStatus === true ? "success" : pingStatus === false ? "danger" : "warning";
     const pingStatusText = pingStatus === true ? "OK" : pingStatus === false ? "Fail" : "Unknown";
-    addCell(`<span class="status-dot ${pingStatusClass}"></span>${pingStatusText}`, true);
+    addCell(`<span class="status-dot badge badge-${pingStatusClass}"></span>${pingStatusText}`, true);
 
     addCell(device.bandwidth_usage ? device.bandwidth_usage.toFixed(2) : "-");
 
     const httpStatus = device.http_status;
-    const httpStatusClass = httpStatus === true ? "green" : httpStatus === false ? "red" : "yellow";
+    const httpStatusClass = httpStatus === true ? "success" : httpStatus === false ? "danger" : "warning";
     const httpStatusText = httpStatus === true ? "OK" : httpStatus === false ? "Fail" : "Unknown";
-    addCell(`<span class="status-dot ${httpStatusClass}"></span>${httpStatusText}`, true);
+    addCell(`<span class="status-dot badge badge-${httpStatusClass}"></span>${httpStatusText}`, true);
 
     tbody.appendChild(tr);
 
@@ -173,6 +191,7 @@ function updateBandwidthChart(devices) {
   const isDarkMode = document.body.classList.contains('dark-mode');
   const backgroundColor = isDarkMode ? 'rgba(108, 117, 125, 0.7)' : 'rgba(9, 105, 218, 0.2)'; // GitHub-like colors
   const borderColor = isDarkMode ? 'rgba(108, 117, 125, 1)' : 'rgba(9, 105, 218, 1)';
+
 
   if (bandwidthChart) {
     // Update existing chart
@@ -344,11 +363,10 @@ function toggleDarkMode() {
 }
 
 function updateChartsForDarkMode() {
-  const isDarkMode = document.body.classList.contains("dark-mode");
+  const isDarkMode = document.body.classList.contains('dark-mode');
   const gridColor = isDarkMode ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)";
   const backgroundColor = isDarkMode ? 'rgba(108, 117, 125, 0.7)' : 'rgba(9, 105, 218, 0.2)'; // GitHub-like colors
   const borderColor = isDarkMode ? 'rgba(108, 117, 125, 1)' : 'rgba(9, 105, 218, 1)';
-
   if (bandwidthChart) {
     bandwidthChart.options.scales.y.grid.color = gridColor;
     bandwidthChart.data.datasets[0].backgroundColor = backgroundColor;
@@ -368,6 +386,11 @@ function updateChartsForDarkMode() {
     devicePieChart.options.plugins.tooltip.bodyColor = isDarkMode ? '#c9d1d9' : '#24292f';
     devicePieChart.options.plugins.tooltip.borderColor = isDarkMode ? '#30363d' : '#d0d7de';
     devicePieChart.update();
+  }
+
+  //Update category health chart for dark mode
+  if (categoryHealthChart) {
+    updateCategoryHealthChart(devicesData);
   }
 }
 
@@ -508,14 +531,18 @@ document.addEventListener("DOMContentLoaded", () => {
   //logo change
   updateLogo(savedDarkMode === "true");
 
+  // Initialize all charts
+  initCategoryHealthChart();
+
+  // Fetch devices and update UI
   fetchDevices();
   setInterval(fetchDevices, 15000); // Fetch data every 15 seconds
   updateSortIcons();
-  
+
   // Initialize category filter
   const allDevicesBtn = document.querySelector('[data-category="all"]');
   if (allDevicesBtn) {
-      allDevicesBtn.onclick = () => filterByCategory('all');
+    allDevicesBtn.onclick = () => filterByCategory('all');
   }
 });
 
@@ -554,39 +581,38 @@ function resetPassword() {
 }
 
 async function updateDeviceStatuses() {
-    try {
-        const response = await fetch('/devices');
-        if (!response.ok) throw new Error('Failed to fetch devices');
-        
-        const devices = await response.json();
-        let statusChanged = false;
-        
-        devices.forEach(device => {
-            const currentStatus = deviceStatuses.get(device.ip);
-            
-            if (!currentStatus || 
-                currentStatus.ping_status !== device.ping_status ||
-                currentStatus.http_status !== device.http_status ||
-                currentStatus.bandwidth_usage !== device.bandwidth_usage) {
-                
-                deviceStatuses.set(device.ip, {
-                    ping_status: device.ping_status,
-                    http_status: device.http_status,
-                    bandwidth_usage: device.bandwidth_usage,
-                    lastChange: Date.now()
-                });
-                statusChanged = true;
-            }
+  try {
+    const response = await fetch('/devices');
+    if (!response.ok) throw new Error('Failed to fetch devices');
+
+    const devices = await response.json();
+    let statusChanged = false;
+
+    devices.forEach(device => {
+      const currentStatus = deviceStatuses.get(device.ip);
+
+      if (!currentStatus ||
+        currentStatus.ping_status !== device.ping_status ||
+        currentStatus.http_status !== device.http_status ||
+        currentStatus.bandwidth_usage !== device.bandwidth_usage) {
+
+        deviceStatuses.set(device.ip, {
+          ping_status: device.ping_status,
+          http_status: device.http_status,
+          bandwidth_usage: device.bandwidth_usage,
+          lastChange: Date.now()
         });
-        
-        // Only update UI if status actually changed
-        if (statusChanged) {
-            renderDevicesTable(devices);
-            updateCharts(devices);
-        }
-    } catch (error) {
-        console.error('Error updating device statuses:', error);
+        statusChanged = true;
+      }
+    });
+
+    // Only update UI if status actually changed
+    if (statusChanged) {
+      renderData(devices);
     }
+  } catch (error) {
+    console.error('Error updating device statuses:', error);
+  }
 }
 
 // Update status check interval
@@ -595,5 +621,185 @@ setInterval(updateDeviceStatuses, STATUS_CHECK_INTERVAL);
 
 // Initial load
 document.addEventListener('DOMContentLoaded', () => {
-    updateDeviceStatuses();
+  updateDeviceStatuses();
+});
+
+function initCategoryHealthChart() {
+  const ctx = document.getElementById('categoryHealthChart');
+  if (!ctx) {
+    console.error("Category health chart canvas element not found.");
+    return;
+  }
+
+  if (categoryHealthChart) {
+    categoryHealthChart.destroy();
+  }
+  const isDarkMode = document.body.classList.contains('dark-mode');
+
+  categoryHealthChart = new Chart(ctx, {
+    type: 'bar',
+    data: categoryHealthData,
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      indexAxis: 'y',
+      plugins: {
+        legend: {
+          position: 'top',
+          labels: {
+            color: isDarkMode ? '#c9d1d9' : '#24292f',
+          }
+        },
+        tooltip: {
+          backgroundColor: isDarkMode ? '#161b22' : '#fff',
+          bodyColor: isDarkMode ? '#c9d1d9' : '#24292f',
+          borderColor: isDarkMode ? '#30363d' : '#d0d7de',
+          borderWidth: 1,
+          padding: 10,
+          callbacks: {
+            label: function (context) {
+              return context.dataset.label + ': ' + context.raw + ' devices';
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          stacked: true,
+          title: {
+            display: true,
+            color: isDarkMode ? '#c9d1d9' : '#24292f',
+          },
+          ticks: {
+            color: isDarkMode ? '#c9d1d9' : '#24292f',
+          },
+          grid: {
+            color: isDarkMode ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)",
+          }
+        },
+        y: {
+          stacked: true,
+          title: {
+            display: true,
+            color: isDarkMode ? '#c9d1d9' : '#24292f',
+          },
+          ticks: {
+            color: isDarkMode ? '#c9d1d9' : '#24292f',
+          },
+          grid: {
+            color: isDarkMode ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)",
+          }
+        }
+      }
+    }
+  });
+}
+
+function updateCategoryHealthChart(devices) {
+  if (!categoryHealthChart) {
+    console.warn("Category health chart not initialized.  Initializing now.");
+    initCategoryHealthChart();
+    return;
+  }
+
+  // 1. Reset Data:  *Crucially*, reset the chart data *before* populating it.
+  categoryHealthData.labels = [];
+  categoryHealthData.datasets.forEach(dataset => {
+    dataset.data = [];
+  });
+
+  // 2. Group by Category and Status
+  const categories = {};
+  devices.forEach(device => {
+    const category = device.category || "Unknown";
+    if (!categories[category]) {
+      categories[category] = { up: 0, down: 0, unknown: 0 };
+    }
+    // Use the consistent ping_status for health.
+    if (device.ping_status === true) {
+      categories[category].up++;
+    } else if (device.ping_status === false) {
+      categories[category].down++;
+    } else {
+      categories[category].unknown++;
+    }
+  });
+
+  // 3. Prepare Data for Chart
+  const categoryLabels = Object.keys(categories);
+  const upData = [];
+  const downData = [];
+  const unknownData = [];
+
+  categoryLabels.forEach(category => {
+    upData.push(categories[category].up);
+    downData.push(categories[category].down);
+    unknownData.push(categories[category].unknown);
+  });
+
+  // 4. Update Chart Data
+  categoryHealthData.labels = categoryLabels;
+  categoryHealthData.datasets[0].data = upData;
+  categoryHealthData.datasets[1].data = downData;
+  categoryHealthData.datasets[2].data = unknownData;
+
+  // 5. Update Chart Colors and Styles for Dark Mode *BEFORE* updating.
+  const isDarkMode = document.body.classList.contains('dark-mode');
+
+  // Define colors based on dark mode
+  const upColor = isDarkMode ? 'rgba(40, 167, 69, 0.8)' : 'rgba(34, 139, 34, 0.8)';
+  const downColor = isDarkMode ? 'rgba(220, 53, 69, 0.8)' : 'rgba(178, 34, 34, 0.8)';
+  const unknownColor = isDarkMode ? 'rgba(255, 193, 7, 0.8)' : 'rgba(255, 165, 0, 0.8)';
+
+  // Update dataset background colors
+  categoryHealthChart.data.datasets[0].backgroundColor = upColor;
+  categoryHealthChart.data.datasets[1].backgroundColor = downColor;
+  categoryHealthChart.data.datasets[2].backgroundColor = unknownColor;
+
+  // Update text and grid colors
+  const textColor = isDarkMode ? '#c9d1d9' : '#24292f';
+  const gridColor = isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
+
+  categoryHealthChart.options.scales.x.title.color = textColor;
+  categoryHealthChart.options.scales.y.title.color = textColor;
+  categoryHealthChart.options.scales.x.ticks.color = textColor;
+  categoryHealthChart.options.scales.y.ticks.color = textColor;
+  categoryHealthChart.options.scales.x.grid.color = gridColor;
+  categoryHealthChart.options.scales.y.grid.color = gridColor;
+  categoryHealthChart.options.plugins.legend.labels.color = textColor;
+
+  // Update tooltip colors
+  categoryHealthChart.options.plugins.tooltip.backgroundColor = isDarkMode ? '#161b22' : '#fff';
+  categoryHealthChart.options.plugins.tooltip.bodyColor = isDarkMode ? '#c9d1d9' : '#24292f';
+  categoryHealthChart.options.plugins.tooltip.borderColor = isDarkMode ? '#30363d' : '#d0d7de';
+
+
+  // 6. *NOW* Update the Chart
+  categoryHealthChart.update();
+}
+
+// Call updateCategoryHealthChart on initial load and dark mode toggle.
+document.addEventListener('DOMContentLoaded', () => {
+  // ... other DOMContentLoaded code ...
+  initCategoryHealthChart();
+  updateCategoryHealthChart(devicesData);
+
+  // Apply dark mode preference.
+  const savedDarkMode = localStorage.getItem("darkMode");
+  const toggleButton = document.querySelector(".dark-mode-toggle");
+  const icon = toggleButton.querySelector("i");
+
+  if (savedDarkMode === "true") {
+    document.body.classList.add("dark-mode");
+    toggleButton.classList.add("active");
+    icon.classList.remove("fa-moon");
+    icon.classList.add("fa-sun");
+    icon.style.transform = "rotate(180deg)";
+  } else {
+    // Ensure icon is set to moon if not in dark mode
+    icon.classList.remove("fa-sun");
+    icon.classList.add("fa-moon");
+    icon.style.transform = "rotate(0deg)";
+  }
+  updateChartsForDarkMode();
 });

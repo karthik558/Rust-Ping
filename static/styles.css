@@ -378,7 +378,7 @@ body.dark-mode {
 /* --- Charts Section --- */
 .charts-section {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
     gap: 1rem;
 }
 
@@ -387,7 +387,8 @@ body.dark-mode {
     border-radius: var(--border-radius);
     box-shadow: var(--box-shadow);
     transition: box-shadow var(--transition-speed);
-    padding: 1rem;
+    padding: 15px;
+    height: 350px;
     border: 1px solid var(--border-color-light);
 }
 
@@ -410,7 +411,8 @@ body.dark-mode {
 }
 
 .chart-container {
-    height: 250px;
+    height: calc(100% - 40px);
+    width: 100%;
     position: relative;
 }
 
