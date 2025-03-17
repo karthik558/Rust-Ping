@@ -418,7 +418,61 @@ struct WebDevice {
     http_path: Option<String>,
 }
 
-// Endpoint to add devices from the web UI
+// Add this validation function
+fn validate_device(device: &WebDevice, devices: &[WebDevice], exclude_index: Option<usize>) -> Result<(), &'static str> {
+    // Check for empty or invalid values
+    if device.name.trim().is_empty() {
+        return Err("Device name cannot be empty");
+    }
+    if device.ip.trim().is_empty() {
+        return Err("IP address cannot be empty");
+    }
+    if device.category.trim().is_empty() {
+        return Err("Category cannot be empty");
+    }
+    if device.sensors.is_empty() {
+        return Err("At least one sensor must be selected");
+    }
+
+    // Check for duplicates (excluding the current device if updating)
+    for (index, existing) in devices.iter().enumerate() {
+        if let Some(exclude) = exclude_index {
+            if index == exclude {
+                continue;
+            }
+        }
+        if existing.name == device.name {
+            return Err("Device name already exists");
+        }
+    }
+
+    Ok(())
+}
+
+// Add this implementation before the add_web_device function
+impl From<WebDevice> for ModelDevice {
+    fn from(web_device: WebDevice) -> Self {
+        ModelDevice {
+            name: web_device.name,
+            ip: web_device.ip,
+            category: web_device.category,
+            sensors: web_device.sensors.iter()
+                .map(|s| match s.as_str() {
+                    "Ping" => SensorType::Ping,
+                    "Http" => SensorType::Http,
+                    "Https" => SensorType::Https,
+                    _ => SensorType::Ping
+                })
+                .collect(),
+            http_path: web_device.http_path,
+            ping_status: None,
+            http_status: None,
+            bandwidth_usage: None,
+        }
+    }
+}
+
+// Then modify the add_web_device function to use the conversion
 #[post("/devices", data = "<device>")]
 async fn add_web_device(device: &str, devices: &State<SharedDevices>) -> Status {
     let new_device: WebDevice = match serde_json::from_str(device) {
@@ -429,7 +483,7 @@ async fn add_web_device(device: &str, devices: &State<SharedDevices>) -> Status 
         }
     };
 
-    // Read current devices from file
+    // Read and validate against existing devices
     let file_path = "devices.json";
     let content = match fs::read_to_string(file_path) {
         Ok(content) => content,
@@ -447,18 +501,16 @@ async fn add_web_device(device: &str, devices: &State<SharedDevices>) -> Status 
         }
     };
 
-    // Check for duplicates before adding
-    if file_devices.iter().any(|d| d.name == new_device.name || d.ip == new_device.ip) {
-        error!("Device with same name or IP already exists");
-        return Status::Conflict;
+    // Validate new device
+    if let Err(e) = validate_device(&new_device, &file_devices, None) {
+        error!("Validation failed: {}", e);
+        return Status::BadRequest;
     }
 
-    // Add new device to file array
+    // Add device and write to file atomically
     file_devices.push(new_device.clone());
-
-    // Write to file atomically
-    let temp_path = format!("{}.tmp", file_path);
     if let Ok(json) = serde_json::to_string_pretty(&file_devices) {
+        let temp_path = format!("{}.tmp", file_path);
         if let Err(e) = fs::write(&temp_path, &json) {
             error!("Failed to write temporary file: {}", e);
             return Status::InternalServerError;
@@ -471,25 +523,9 @@ async fn add_web_device(device: &str, devices: &State<SharedDevices>) -> Status 
         return Status::InternalServerError;
     }
 
-    // Add to in-memory devices only after successful file write
+    // Update in-memory state using From trait
     let mut devices_locked = devices.lock().await;
-    devices_locked.push(ModelDevice {
-        name: new_device.name,
-        ip: new_device.ip,
-        category: new_device.category,
-        sensors: new_device.sensors.iter()
-            .map(|s| match s.as_str() {
-                "Ping" => SensorType::Ping,
-                "Http" => SensorType::Http,
-                "Https" => SensorType::Https,
-                _ => SensorType::Ping
-            })
-            .collect(),
-        http_path: new_device.http_path,
-        ping_status: None,
-        http_status: None,
-        bandwidth_usage: None,
-    });
+    devices_locked.push(ModelDevice::from(new_device.clone()));
 
     Status::Ok
 }

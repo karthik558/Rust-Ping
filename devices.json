@@ -64,7 +64,7 @@
   },
   {
     "name": "Cisco Virtual Controller",
-    "ip": "8.8.8.8",
+    "ip": "8.8.10.8",
     "category": "Access Point",
     "sensors": [
       "Ping"
@@ -72,7 +72,7 @@
   },
   {
     "name": "NAS",
-    "ip": "8.8.4.4",
+    "ip": "196.203.86.4",
     "category": "Storage Server",
     "sensors": [
       "Ping"
@@ -80,7 +80,7 @@
   },
   {
     "name": "CCTV Server",
-    "ip": "8.8.8.8",
+    "ip": "204.106.240.53",
     "category": "CCTV",
     "sensors": [
       "Ping"
