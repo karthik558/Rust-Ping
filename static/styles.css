@@ -97,6 +97,11 @@ body.dark-mode {
     margin-right: 0.5rem;
 }
 
+.logo img:hover {
+  transform: scale(1.05);
+  transition: transform var(--transition-speed);
+}
+
 .app-name {
     font-weight: 600;
     font-size: 1.1rem;
