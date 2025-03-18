@@ -1,1 +1,11 @@
-{"smtp_server":"smtp.gmail.com","smtp_port":587,"sender_email":"","sender_password":"","recipients":[],"email_subject":"Failed Log Alert - {device_name}","email_body":"Device {device_name} failed at {date} {time}\nPing Status: {ping_status}\nHTTP Status: {http_status}\nBandwidth: {bandwidth}"}
+{
+  "smtp_server": "smtp.gmail.com",
+  "smtp_port": 587,
+  "sender_email": "your_email@example.com",
+  "sender_password": "your_password",
+  "recipients": [
+    "your_email@example.com"
+  ],
+  "email_subject": "RustPing Status Report",
+  "email_body": "{date}{time}{device_name}{ping_status}"
+}

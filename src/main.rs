@@ -723,7 +723,7 @@ struct TestEmailRequest {
 async fn send_test_email(
     email_service: &State<Arc<EmailService>>,
     request: Json<TestEmailRequest>,
-) -> Result<Json<serde_json::Value>, Status> {
+) -> Result<Json<serde_json::Value>, Json<serde_json::Value>> {
     match email_service.send_test_email(&request.test_email).await {
         Ok(_) => Ok(Json(json!({
             "status": "success",
@@ -731,7 +731,10 @@ async fn send_test_email(
         }))),
         Err(e) => {
             error!("Failed to send test email: {}", e);
-            Err(Status::InternalServerError)
+            Err(Json(json!({
+                "status": "error",
+                "message": e.to_string()
+            })))
         }
     }
 }

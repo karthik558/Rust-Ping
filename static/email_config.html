@@ -337,14 +337,25 @@
 
         async function saveConfiguration() {
             const config = {
-                smtpServer: document.getElementById('smtpServer').value,
-                smtpPort: document.getElementById('smtpPort').value,
-                senderEmail: document.getElementById('senderEmail').value,
-                senderPassword: document.getElementById('senderPassword').value,
+                smtp_server: document.getElementById('smtpServer').value,
+                smtp_port: parseInt(document.getElementById('smtpPort').value),
+                sender_email: document.getElementById('senderEmail').value,
+                sender_password: document.getElementById('senderPassword').value,
                 recipients: recipients,
-                emailSubject: document.getElementById('emailSubject').value,
-                emailBody: document.getElementById('emailBody').value
+                email_subject: document.getElementById('emailSubject').value,
+                email_body: document.getElementById('emailBody').value
             };
+
+            // Validate required fields
+            if (!config.smtp_server || !config.smtp_port || !config.sender_email || !config.sender_password) {
+                showStatus('Please fill in all required fields', true);
+                return;
+            }
+
+            if (recipients.length === 0) {
+                showStatus('Please add at least one recipient', true);
+                return;
+            }
 
             try {
                 const response = await fetch('/api/email/config', {
@@ -355,10 +366,12 @@
                     body: JSON.stringify(config)
                 });
 
+                const data = await response.json();
+                
                 if (response.ok) {
                     showStatus('Configuration saved successfully!');
                 } else {
-                    throw new Error('Failed to save configuration');
+                    throw new Error(data.message || 'Failed to save configuration');
                 }
             } catch (error) {
                 showStatus('Error saving configuration: ' + error.message, true);
@@ -378,15 +391,18 @@
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ testEmail })
+                    body: JSON.stringify({ test_email: testEmail })
                 });
 
+                const data = await response.json();
+                
                 if (response.ok) {
                     showStatus('Test email sent successfully!');
                 } else {
-                    throw new Error('Failed to send test email');
+                    throw new Error(data.message || 'Failed to send test email');
                 }
             } catch (error) {
+                console.error('Error sending test email:', error);
                 showStatus('Error sending test email: ' + error.message, true);
             }
         }
@@ -396,17 +412,20 @@
                 const response = await fetch('/api/email/config');
                 if (response.ok) {
                     const config = await response.json();
-                    document.getElementById('smtpServer').value = config.smtpServer || '';
-                    document.getElementById('smtpPort').value = config.smtpPort || '';
-                    document.getElementById('senderEmail').value = config.senderEmail || '';
-                    document.getElementById('senderPassword').value = config.senderPassword || '';
-                    document.getElementById('emailSubject').value = config.emailSubject || '';
-                    document.getElementById('emailBody').value = config.emailBody || '';
+                    document.getElementById('smtpServer').value = config.smtp_server || '';
+                    document.getElementById('smtpPort').value = config.smtp_port || '';
+                    document.getElementById('senderEmail').value = config.sender_email || '';
+                    document.getElementById('senderPassword').value = config.sender_password || '';
+                    document.getElementById('emailSubject').value = config.email_subject || '';
+                    document.getElementById('emailBody').value = config.email_body || '';
                     recipients = config.recipients || [];
                     updateRecipientsList();
+                } else {
+                    throw new Error('Failed to load configuration');
                 }
             } catch (error) {
                 console.error('Error loading configuration:', error);
+                showStatus('Error loading configuration: ' + error.message, true);
             }
         }
 
