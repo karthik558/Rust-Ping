@@ -23,6 +23,7 @@
             <nav class="navigation">
                 <a href="/static/index.html" class="nav-link">Dashboard</a>
                 <a href="/static/log_view.html" class="nav-link">Live Logs</a>
+                <a href="/static/email_config.html" class="nav-link">Email Alerts</a>
             </nav>
             <div class="dark-mode-toggle" onclick="toggleDarkMode()">
                     <i class="fas fa-moon"></i>
@@ -161,13 +162,11 @@
                     addCell(log.device);
 
                     const pingTd = document.createElement('td');
-                    pingTd.textContent = log.ping;
-                    pingTd.classList.add(log.ping.toLowerCase() === 'fail' ? 'status-fail' : 'status-ok');
+                    pingTd.innerHTML = `<span class="status-dot badge badge-${log.ping.toLowerCase() === 'fail' ? 'danger' : 'success'}"></span>${log.ping}`;
                     row.appendChild(pingTd);
 
                     const httpTd = document.createElement('td');
-                    httpTd.textContent = log.http;
-                    httpTd.classList.add(log.http.toLowerCase() === 'fail' ? 'status-fail' : 'status-ok');
+                    httpTd.innerHTML = `<span class="status-dot badge badge-${log.http.toLowerCase() === 'fail' ? 'danger' : 'success'}"></span>${log.http}`;
                     row.appendChild(httpTd);
 
                     addCell(log.bandwidth);

@@ -142,6 +142,7 @@ function updateTable(devices) {
       const td = document.createElement("td");
       td.innerHTML = isStatus ? content : (content || "-"); // Use innerHTML for status.
       tr.appendChild(td);
+      return td;
     };
 
     addCell(device.name);

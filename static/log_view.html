@@ -23,6 +23,7 @@
         <nav class="navigation">
             <a href="/static/index.html" class="nav-link">Dashboard</a>
             <a href="/static/failed_logs.html" class="nav-link">Failed Logs</a>
+            <a href="/static/email_config.html" class="nav-link">Email Alerts</a>
         </nav>
         <div class="dark-mode-toggle" onclick="toggleDarkMode()">
             <i class="fas fa-moon"></i> <!- - Initial Icon (Moon for Light Mode Default) - ->
@@ -141,32 +142,31 @@
                 if (entry.down) {
                     tr.classList.add('down'); // Add class for down status
                 }
-                const addCell = (content) => {
+                const addCell = (content, isHTML = false) => {
                     const td = document.createElement('td');
-                    td.textContent = content;
+                    if (isHTML) {
+                        td.innerHTML = content;
+                    } else {
+                        td.textContent = content;
+                    }
                     tr.appendChild(td);
+                    return td;
                 }
 
                 addCell(entry.date);
                 addCell(entry.time);
                 addCell(entry.device);
 
-                const pingTd = document.createElement('td');
-                pingTd.textContent = entry.ping;
-                pingTd.classList.add(entry.ping.toLowerCase() === 'fail' ? 'status-fail' : 'status-ok');
-                tr.appendChild(pingTd);
+                const pingClass = entry.ping.toLowerCase() === 'fail' ? 'danger' : 'success';
+                addCell(`<span class="status-dot badge badge-${pingClass}"></span>${entry.ping}`, true);
 
-                const httpTd = document.createElement('td');
-                httpTd.textContent = entry.http;
-                httpTd.classList.add(entry.http.toLowerCase() === 'fail' ? 'status-fail' : 'status-ok');
-                tr.appendChild(httpTd);
+                const httpClass = entry.http.toLowerCase() === 'fail' ? 'danger' : 'success';
+                addCell(`<span class="status-dot badge badge-${httpClass}"></span>${entry.http}`, true);
 
                 addCell(entry.bandwidth);
 
-                const statusTd = document.createElement('td');
-                statusTd.textContent = entry.down ? "DOWN" : "OK";
-                statusTd.classList.add(entry.down ? 'status-fail' : 'status-ok');
-                tr.appendChild(statusTd);
+                const statusClass = entry.down ? 'danger' : 'success';
+                addCell(`<span class="status-dot badge badge-${statusClass}"></span>${entry.down ? "DOWN" : "OK"}`, true);
 
                 tbody.appendChild(tr);
             });

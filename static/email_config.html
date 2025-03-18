@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RustPing | Email Configuration</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
+        integrity="sha512-z3gLpd7yknf1YoNbCzqRKc4qyor8gaKU1qmn+CShxbuBusANI9QpRohGBreCFkKxLhei6S9CQXFEbbKuqLg0DA=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="icon" href="favicon.png" type="image/x-icon">
+    <style>
+        .email-config-container {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .config-section {
+            margin-bottom: 2rem;
+        }
+
+        .config-section h2 {
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .form-group input[type="text"],
+        .form-group input[type="email"],
+        .form-group input[type="password"],
+        .form-group textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            background: var(--input-bg);
+            color: var(--text-primary);
+            font-size: 1rem;
+        }
+
+        .form-group textarea {
+            min-height: 150px;
+            resize: vertical;
+        }
+
+        .recipients-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .recipient-tag {
+            background: var(--primary-color);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .recipient-tag button {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            padding: 0;
+            font-size: 1rem;
+        }
+
+        .test-email-section {
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .nav-button {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 6px;
+            background: var(--primary-color);
+            color: white;
+            cursor: pointer;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: background-color 0.2s;
+        }
+
+        .nav-button:hover {
+            background: var(--primary-color-dark);
+        }
+
+        .nav-button.secondary {
+            background: var(--secondary-color);
+        }
+
+        .nav-button.secondary:hover {
+            background: var(--secondary-color-dark);
+        }
+
+        .status-message {
+            margin-top: 1rem;
+            padding: 1rem;
+            border-radius: 6px;
+            display: none;
+        }
+
+        .status-message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status-message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .template-variables {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: var(--secondary-bg);
+            border-radius: 6px;
+        }
+
+        .template-variables h3 {
+            margin-bottom: 0.5rem;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .variable-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .variable-tag {
+            background: var(--primary-color-light);
+            color: var(--primary-color);
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+
+        .variable-tag:hover {
+            background: var(--primary-color);
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <header class="header">
+            <div class="logo">
+                <a href="javascript:void(0)" onclick="reloadCurrentPage()" class="logo-link">
+                    <img src="logo-dark.png" alt="RustPing Logo" id="logoImage">
+                    <span class="app-name">RustPing</span>
+                </a>
+            </div>
+            <nav class="navigation">
+                <a href="/static/index.html" class="nav-link">Dashboard</a>
+                <a href="/static/log_view.html" class="nav-link">Live Logs</a>
+                <a href="/static/failed_logs.html" class="nav-link">Failed Logs</a>
+            </nav>
+            <div class="dark-mode-toggle" onclick="toggleDarkMode()">
+                <i class="fas fa-moon"></i>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <div class="email-config-container">
+                <div class="config-section">
+                    <h2>Email Server Configuration</h2>
+                    <div class="form-group">
+                        <label for="smtpServer">SMTP Server</label>
+                        <input type="text" id="smtpServer" placeholder="smtp.gmail.com">
+                    </div>
+                    <div class="form-group">
+                        <label for="smtpPort">SMTP Port</label>
+                        <input type="text" id="smtpPort" placeholder="587">
+                    </div>
+                    <div class="form-group">
+                        <label for="senderEmail">Sender Email</label>
+                        <input type="email" id="senderEmail" placeholder="your-email@example.com">
+                    </div>
+                    <div class="form-group">
+                        <label for="senderPassword">Sender Password</label>
+                        <input type="password" id="senderPassword" placeholder="Your email password or app-specific password">
+                    </div>
+                </div>
+
+                <div class="config-section">
+                    <h2>Email Recipients</h2>
+                    <div class="form-group">
+                        <label for="recipientEmail">Add Recipient</label>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <input type="email" id="recipientEmail" placeholder="recipient@example.com">
+                            <button class="nav-button" onclick="addRecipient()">
+                                <i class="fas fa-plus"></i> Add
+                            </button>
+                        </div>
+                        <div class="recipients-list" id="recipientsList"></div>
+                    </div>
+                </div>
+
+                <div class="config-section">
+                    <h2>Email Template</h2>
+                    <div class="form-group">
+                        <label for="emailSubject">Email Subject</label>
+                        <input type="text" id="emailSubject" placeholder="Failed Log Alert - {device_name}">
+                    </div>
+                    <div class="form-group">
+                        <label for="emailBody">Email Body</label>
+                        <div class="template-variables">
+                            <h3>Available Variables:</h3>
+                            <div class="variable-list">
+                                <span class="variable-tag" onclick="insertVariable('{device_name}')">{device_name}</span>
+                                <span class="variable-tag" onclick="insertVariable('{date}')">{date}</span>
+                                <span class="variable-tag" onclick="insertVariable('{time}')">{time}</span>
+                                <span class="variable-tag" onclick="insertVariable('{ping_status}')">{ping_status}</span>
+                                <span class="variable-tag" onclick="insertVariable('{http_status}')">{http_status}</span>
+                                <span class="variable-tag" onclick="insertVariable('{bandwidth}')">{bandwidth}</span>
+                            </div>
+                        </div>
+                        <textarea id="emailBody" placeholder="Enter your email template here..."></textarea>
+                    </div>
+                </div>
+
+                <div class="test-email-section">
+                    <h2>Test Configuration</h2>
+                    <div class="form-group">
+                        <label for="testEmail">Test Email Address</label>
+                        <input type="email" id="testEmail" placeholder="test@example.com">
+                    </div>
+                    <div class="button-group">
+                        <button class="nav-button" onclick="saveConfiguration()">
+                            <i class="fas fa-save"></i> Save Configuration
+                        </button>
+                        <button class="nav-button secondary" onclick="sendTestEmail()">
+                            <i class="fas fa-paper-plane"></i> Send Test Email
+                        </button>
+                    </div>
+                    <div id="statusMessage" class="status-message"></div>
+                </div>
+            </div>
+        </main>
+
+        <footer class="footer">
+            © Copyright 2025. All rights reserved. Developed by KARTHIK LAL.
+        </footer>
+    </div>
+
+    <script>
+        let recipients = [];
+
+        function addRecipient() {
+            const emailInput = document.getElementById('recipientEmail');
+            const email = emailInput.value.trim();
+            
+            if (email && isValidEmail(email) && !recipients.includes(email)) {
+                recipients.push(email);
+                updateRecipientsList();
+                emailInput.value = '';
+            } else {
+                alert('Please enter a valid email address');
+            }
+        }
+
+        function removeRecipient(email) {
+            recipients = recipients.filter(r => r !== email);
+            updateRecipientsList();
+        }
+
+        function updateRecipientsList() {
+            const list = document.getElementById('recipientsList');
+            list.innerHTML = recipients.map(email => `
+                <div class="recipient-tag">
+                    ${email}
+                    <button onclick="removeRecipient('${email}')">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        function isValidEmail(email) {
+            return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+        }
+
+        function insertVariable(variable) {
+            const textarea = document.getElementById('emailBody');
+            const start = textarea.selectionStart;
+            const end = textarea.selectionEnd;
+            const text = textarea.value;
+            const newText = text.substring(0, start) + variable + text.substring(end);
+            textarea.value = newText;
+            textarea.focus();
+        }
+
+        function showStatus(message, isError = false) {
+            const statusDiv = document.getElementById('statusMessage');
+            statusDiv.textContent = message;
+            statusDiv.className = `status-message ${isError ? 'error' : 'success'}`;
+            statusDiv.style.display = 'block';
+            setTimeout(() => {
+                statusDiv.style.display = 'none';
+            }, 5000);
+        }
+
+        async function saveConfiguration() {
+            const config = {
+                smtpServer: document.getElementById('smtpServer').value,
+                smtpPort: document.getElementById('smtpPort').value,
+                senderEmail: document.getElementById('senderEmail').value,
+                senderPassword: document.getElementById('senderPassword').value,
+                recipients: recipients,
+                emailSubject: document.getElementById('emailSubject').value,
+                emailBody: document.getElementById('emailBody').value
+            };
+
+            try {
+                const response = await fetch('/api/email/config', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(config)
+                });
+
+                if (response.ok) {
+                    showStatus('Configuration saved successfully!');
+                } else {
+                    throw new Error('Failed to save configuration');
+                }
+            } catch (error) {
+                showStatus('Error saving configuration: ' + error.message, true);
+            }
+        }
+
+        async function sendTestEmail() {
+            const testEmail = document.getElementById('testEmail').value;
+            if (!testEmail || !isValidEmail(testEmail)) {
+                showStatus('Please enter a valid test email address', true);
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/email/config/test', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ testEmail })
+                });
+
+                if (response.ok) {
+                    showStatus('Test email sent successfully!');
+                } else {
+                    throw new Error('Failed to send test email');
+                }
+            } catch (error) {
+                showStatus('Error sending test email: ' + error.message, true);
+            }
+        }
+
+        async function loadConfiguration() {
+            try {
+                const response = await fetch('/api/email/config');
+                if (response.ok) {
+                    const config = await response.json();
+                    document.getElementById('smtpServer').value = config.smtpServer || '';
+                    document.getElementById('smtpPort').value = config.smtpPort || '';
+                    document.getElementById('senderEmail').value = config.senderEmail || '';
+                    document.getElementById('senderPassword').value = config.senderPassword || '';
+                    document.getElementById('emailSubject').value = config.emailSubject || '';
+                    document.getElementById('emailBody').value = config.emailBody || '';
+                    recipients = config.recipients || [];
+                    updateRecipientsList();
+                }
+            } catch (error) {
+                console.error('Error loading configuration:', error);
+            }
+        }
+
+        // Load configuration on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            loadConfiguration();
+            
+            // Check authentication
+            if (!document.cookie.includes('auth=true')) {
+                window.location.href = '/static/login.html';
+                return;
+            }
+            
+            // Setup dark mode
+            const savedDarkMode = localStorage.getItem('darkMode');
+            if (savedDarkMode === 'true') {
+                document.body.classList.add('dark-mode');
+                document.querySelector('.dark-mode-toggle').classList.add('active');
+                document.querySelector('.dark-mode-toggle i').classList.remove('fa-moon');
+                document.querySelector('.dark-mode-toggle i').classList.add('fa-sun');
+            }
+        });
+
+        function toggleDarkMode() {
+            const body = document.body;
+            body.classList.toggle('dark-mode');
+            const darkModeToggle = document.querySelector('.dark-mode-toggle');
+            darkModeToggle.classList.toggle('active');
+
+            const icon = darkModeToggle.querySelector('i');
+            const isDarkMode = body.classList.contains('dark-mode');
+            localStorage.setItem('darkMode', isDarkMode);
+            updateLogo(isDarkMode);
+
+            if (isDarkMode) {
+                icon.classList.remove("fa-moon");
+                icon.classList.add("fa-sun");
+            } else {
+                icon.classList.remove("fa-sun");
+                icon.classList.add("fa-moon");
+            }
+        }
+
+        function updateLogo(isDarkMode) {
+            const logo = document.getElementById('logoImage');
+            if (logo) {
+                logo.src = isDarkMode ? 'logo-dark.png' : 'logo-light.png';
+            }
+        }
+
+        function reloadCurrentPage() {
+            window.location.reload();
+        }
+    </script>
+</body>
+</html> 

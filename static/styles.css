@@ -363,17 +363,20 @@ body.dark-mode {
 
 .status-dot {
     display: inline-block;
-    width: 8px;
-    height: 8px;
+    width: 10px;
+    height: 10px;
     border-radius: 50%;
-    margin-right: 0.25rem;
-    vertical-align: middle;
+    margin-right: 8px;
 }
 
-.status-dot.green  { background: var(--success-color); }
-.status-dot.red    { background: var(--error-color); }
-.status-dot.yellow { background: var(--warning-color); }
+.badge {
+    display: inline-flex;
+    align-items: center;
+}
 
+.badge-success { background: var(--success-color); }
+.badge-danger { background: var(--error-color); }
+.badge-warning { background: var(--warning-color); }
 
 /* --- Charts Section --- */
 .charts-section {
@@ -859,14 +862,40 @@ th[data-sort="time"] i {
 
 /* --- Status Indicators (for logs) --- */
 .status-fail {
+    color: var(--error-color) !important;
+    font-weight: bold !important;
+    background-color: rgba(207, 34, 46, 0.1) !important;
+    padding: 0.25rem 0.5rem !important;
+    border-radius: 4px !important;
+}
+
+.status-ok {
+    color: var(--success-color) !important;
+    font-weight: bold !important;
+    background-color: rgba(45, 164, 78, 0.1) !important;
+    padding: 0.25rem 0.5rem !important;
+    border-radius: 4px !important;
+}
+
+.status-down {
+    background-color: rgba(207, 34, 46, 0.1) !important;
+}
+
+/* Status colors for index dashboard */
+td.status-ok, td.status-success {
+    color: var(--success-color);
+    font-weight: bold;
+}
+
+td.status-fail, td.status-error, td.status-down {
     color: var(--error-color);
     font-weight: bold;
 }
 
-.status-ok {
-    color: var(--success-color);
+td.status-warning {
+    color: var(--warning-color);
+    font-weight: bold;
 }
-
 
 .logs-container {
     margin-top: 20px;

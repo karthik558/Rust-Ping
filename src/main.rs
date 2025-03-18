@@ -3,6 +3,7 @@ extern crate rocket;
 
 mod models;
 mod sensors;
+mod email;
 
 use rocket::{get, post, delete, put, routes, State, response::Redirect, catch, catchers};
 use rocket::serde::json::Json;
@@ -27,6 +28,7 @@ use rocket::request::{self, Request, FromRequest};
 use rocket::outcome::Outcome;
 use serde::Deserialize;
 use rocket::serde::Serialize;
+use email::EmailService;
 
 async fn process_logs(start_date_parsed: Option<NaiveDate>, end_date_parsed: Option<NaiveDate>) -> Vec<String> {
     let mut filtered_logs = Vec::new();
@@ -689,6 +691,56 @@ async fn reload_devices_from_file(file_path: &str, devices: SharedDevices) {
 
 use env_logger;
 
+#[get("/api/email/config")]
+async fn get_email_config(email_service: &State<Arc<EmailService>>) -> Json<serde_json::Value> {
+    let config = email_service.get_config().await;
+    Json(json!(config))
+}
+
+#[post("/api/email/config", data = "<config>")]
+async fn update_email_config(
+    email_service: &State<Arc<EmailService>>,
+    config: Json<email::EmailConfig>,
+) -> Result<Json<serde_json::Value>, Status> {
+    match email_service.update_config(config.into_inner()).await {
+        Ok(_) => Ok(Json(json!({
+            "status": "success",
+            "message": "Email configuration updated successfully"
+        }))),
+        Err(e) => {
+            error!("Failed to update email config: {}", e);
+            Err(Status::InternalServerError)
+        }
+    }
+}
+
+#[derive(Deserialize)]
+struct TestEmailRequest {
+    test_email: String,
+}
+
+#[post("/api/email/config/test", data = "<request>")]
+async fn send_test_email(
+    email_service: &State<Arc<EmailService>>,
+    request: Json<TestEmailRequest>,
+) -> Result<Json<serde_json::Value>, Status> {
+    match email_service.send_test_email(&request.test_email).await {
+        Ok(_) => Ok(Json(json!({
+            "status": "success",
+            "message": "Test email sent successfully"
+        }))),
+        Err(e) => {
+            error!("Failed to send test email: {}", e);
+            Err(Status::InternalServerError)
+        }
+    }
+}
+
+#[get("/static/email_config.html")]
+async fn email_config_page(_auth: Auth) -> Option<NamedFile> {
+    NamedFile::open(Path::new("static/email_config.html")).await.ok()
+}
+
 #[tokio::main]
 async fn main() {
     // Initialize logger with debug level
@@ -698,8 +750,11 @@ async fn main() {
     info!("Starting RustPing Network Device Monitor...");
 
     let devices: SharedDevices = Arc::new(Mutex::new(Vec::new()));
+    let email_service = Arc::new(EmailService::new());
+    
     let rocket_instance = rocket::build()
         .manage(devices.clone())
+        .manage(email_service.clone())
         .mount("/static", FileServer::from(relative!("static")).rank(2))
         .mount("/", routes![
             index,
@@ -718,6 +773,10 @@ async fn main() {
             delete_web_device,
             manage_device,
             update_device,
+            get_email_config,
+            update_email_config,
+            send_test_email,
+            email_config_page,
         ])
         .register("/", catchers![unauthorized]);
 
@@ -737,6 +796,7 @@ async fn main() {
 
     // Spawn a background task.
     let devices_clone = devices.clone();
+    let email_service_clone = email_service.clone();
 
     tokio::spawn(async move {
         let mut device_statuses: HashMap<String, DeviceStatus> = HashMap::new();
@@ -823,18 +883,41 @@ async fn main() {
                             "N/A".to_string()
                         };
                         
+                        let ping_status_str = status.ping_status.map_or("N/A", |s| if s { "OK" } else { "FAIL" });
+                        
                         let log_entry = format!(
                             "{} - {} ({}): Ping: {}, HTTP: {}, Bandwidth: {}\n",
                             now.format("%Y-%m-%d %H:%M:%S"),
                             dev.name,
                             dev.ip,
-                            status.ping_status.map_or("N/A", |s| if s { "OK" } else { "FAIL" }),
+                            ping_status_str,
                             http_status,
                             bandwidth
                         );
                         
                         if let Err(e) = file.write_all(log_entry.as_bytes()) {
                             error!("Failed to write log entry: {}", e);
+                        }
+                        
+                        // Send email notification if ping or HTTP status is FAIL
+                        if ping_status_str == "FAIL" || http_status == "FAIL" {
+                            // Create LogData for email
+                            let log_data = email::LogData {
+                                date: now.format("%Y-%m-%d").to_string(),
+                                time: now.format("%H:%M:%S").to_string(),
+                                ping_status: ping_status_str.to_string(),
+                                http_status: http_status.to_string(),
+                                bandwidth: bandwidth.clone(),
+                            };
+                            
+                            // Send email notification in a separate task to avoid blocking
+                            let device_name = dev.name.clone();
+                            let email_service_clone = email_service_clone.clone();
+                            tokio::spawn(async move {
+                                if let Err(e) = email_service_clone.send_email(&device_name, &log_data).await {
+                                    error!("Failed to send email notification: {}", e);
+                                }
+                            });
                         }
                     }
                 }
