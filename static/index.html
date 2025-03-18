@@ -13,16 +13,22 @@
 <body>
     <div class="app-container">
         <header class="header">
-             <div class="logo">
+            <div class="logo">
                 <a href="javascript:void(0)" onclick="reloadCurrentPage()" class="logo-link">
                     <img src="logo-light.png" alt="RustPing Logo" id="logoImage">
                     <span class="app-name">RustPing</span>
-                 </a>
+                </a>
             </div>
             <nav class="navigation">
                 <input type="text" id="filterInput" placeholder="Filter by name/IP..." class="filter-input">
                 <button id="filterButton" class="nav-button"><i class="fas fa-filter"></i></button>
                 <button id="clearFilterButton" class="nav-button"><i class="fas fa-times"></i></button>
+                <button id="refreshButton" class="nav-button" title="Refresh Device Status">
+                    <i class="fas fa-sync-alt"></i> Refresh
+                </button>
+                <div id="updateIndicator" class="update-indicator">
+                    <i class="fas fa-circle-notch fa-spin"></i> Updating...
+                </div>
                 <a href="log_view.html" class="nav-link" id="logViewButton"><i class="fas fa-file-alt"></i> Live Logs</a>
                 <a href="failed_logs.html" class="nav-link" id="failedLogsButton"><i class="fas fa-exclamation-triangle"></i> Failed Logs</a>
                 <a href="manage-devices.html" class="nav-link" id="manageDevicesButton"><i class="fas fa-server"></i> Manage Devices</a>

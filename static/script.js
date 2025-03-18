@@ -25,6 +25,32 @@ let categoryHealthData = {
   ]
 };
 
+// Device Status Management
+let updateInterval = 30000; // 30 seconds
+let isUpdating = false;
+let updateIndicator = document.getElementById('updateIndicator');
+let refreshButton = document.getElementById('refreshButton');
+
+function showUpdateIndicator() {
+    if (updateIndicator) {
+        updateIndicator.style.display = 'inline-flex';
+        if (refreshButton) {
+            refreshButton.classList.add('updating');
+            refreshButton.disabled = true;
+        }
+    }
+}
+
+function hideUpdateIndicator() {
+    if (updateIndicator) {
+        updateIndicator.style.display = 'none';
+        if (refreshButton) {
+            refreshButton.classList.remove('updating');
+            refreshButton.disabled = false;
+        }
+    }
+}
+
 async function fetchDevices() {
   if (isFetching) return;
   isFetching = true;
@@ -581,48 +607,114 @@ function resetPassword() {
   }
 }
 
-async function updateDeviceStatuses() {
-  try {
-    const response = await fetch('/devices');
-    if (!response.ok) throw new Error('Failed to fetch devices');
+async function fetchDeviceStatuses() {
+    if (isUpdating) return;
+    isUpdating = true;
+    showUpdateIndicator();
 
-    const devices = await response.json();
-    let statusChanged = false;
+    try {
+        const response = await fetch('/api/devices/status');
+        if (!response.ok) throw new Error('Failed to fetch device statuses');
+        const newStatuses = await response.json();
 
-    devices.forEach(device => {
-      const currentStatus = deviceStatuses.get(device.ip);
+        // Only update the UI if there are significant changes
+        let hasChanges = false;
+        for (const [deviceName, status] of Object.entries(newStatuses)) {
+            const lastStatus = deviceStatuses.get(deviceName);
+            const hasSignificantChange = !lastStatus || 
+                lastStatus.ping_status !== status.ping_status ||
+                lastStatus.http_status !== status.http_status ||
+                lastStatus.down !== status.down;
 
-      if (!currentStatus ||
-        currentStatus.ping_status !== device.ping_status ||
-        currentStatus.http_status !== device.http_status ||
-        currentStatus.bandwidth_usage !== device.bandwidth_usage) {
+            if (hasSignificantChange) {
+                hasChanges = true;
+                deviceStatuses.set(deviceName, status);
+                updateDeviceRow(deviceName, status);
+            }
+        }
 
-        deviceStatuses.set(device.ip, {
-          ping_status: device.ping_status,
-          http_status: device.http_status,
-          bandwidth_usage: device.bandwidth_usage,
-          lastChange: Date.now()
-        });
-        statusChanged = true;
-      }
-    });
-
-    // Only update UI if status actually changed
-    if (statusChanged) {
-      renderData(devices);
+        // Only update charts if there are significant changes
+        if (hasChanges) {
+            updateBandwidthChart(devicesData);
+            updateCategoryHealthChart(devicesData);
+        }
+    } catch (error) {
+        console.error('Error fetching device statuses:', error);
+    } finally {
+        isUpdating = false;
+        hideUpdateIndicator();
     }
-  } catch (error) {
-    console.error('Error updating device statuses:', error);
-  }
 }
 
-// Update status check interval
-const STATUS_CHECK_INTERVAL = 5000; // 5 seconds
-setInterval(updateDeviceStatuses, STATUS_CHECK_INTERVAL);
+function updateDeviceRow(deviceName, status) {
+    const row = document.querySelector(`tr[data-device="${deviceName}"]`);
+    if (!row) return;
 
-// Initial load
+    // Update status indicators
+    const pingStatus = row.querySelector('.ping-status');
+    const httpStatus = row.querySelector('.http-status');
+    const bandwidthStatus = row.querySelector('.bandwidth-status');
+
+    // Only update if there's a significant change
+    if (pingStatus) {
+        const currentPingStatus = pingStatus.textContent.trim();
+        if (currentPingStatus !== status.ping_status) {
+            pingStatus.textContent = status.ping_status;
+            pingStatus.className = `ping-status status-indicator ${status.ping_status.toLowerCase() === 'fail' ? 'status-fail' : 'status-success'}`;
+        }
+    }
+
+    if (httpStatus) {
+        const currentHttpStatus = httpStatus.textContent.trim();
+        if (currentHttpStatus !== status.http_status) {
+            httpStatus.textContent = status.http_status;
+            httpStatus.className = `http-status status-indicator ${status.http_status.toLowerCase() === 'fail' ? 'status-fail' : 'status-success'}`;
+        }
+    }
+
+    if (bandwidthStatus) {
+        const currentBandwidth = bandwidthStatus.textContent.trim();
+        if (currentBandwidth !== status.bandwidth_usage) {
+            bandwidthStatus.textContent = status.bandwidth_usage;
+        }
+    }
+
+    // Update row status
+    row.classList.toggle('device-down', status.down);
+}
+
+// Initialize device statuses
+async function initializeDeviceStatuses() {
+    try {
+        const response = await fetch('/api/devices/status');
+        if (!response.ok) throw new Error('Failed to fetch initial device statuses');
+        const statuses = await response.json();
+        
+        for (const [deviceName, status] of Object.entries(statuses)) {
+            deviceStatuses.set(deviceName, status);
+            updateDeviceRow(deviceName, status);
+        }
+    } catch (error) {
+        console.error('Error initializing device statuses:', error);
+    }
+}
+
+// Event Listeners
 document.addEventListener('DOMContentLoaded', () => {
-  updateDeviceStatuses();
+    // Initialize device statuses
+    initializeDeviceStatuses();
+
+    // Set up automatic updates
+    setInterval(fetchDeviceStatuses, updateInterval);
+
+    // Add click handler for refresh button
+    if (refreshButton) {
+        refreshButton.addEventListener('click', () => {
+            if (!isUpdating) {
+                fetchDeviceStatuses();
+            }
+        });
+    }
 });
 
 function initCategoryHealthChart() {
