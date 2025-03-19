@@ -354,3 +354,92 @@ body.dark-mode {
 body.dark-mode .welcome-overlay {
     background-color: rgba(var(--accent-color-rgb, 9, 105, 218), 0.9);
 }
+
+/* --- Password Input Container --- */
+.password-input-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.password-toggle {
+    position: absolute;
+    right: 10px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text-color-light);
+    padding: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color var(--transition-speed);
+}
+
+.dark-mode .password-toggle {
+    color: var(--text-color-dark);
+}
+
+.password-toggle:hover {
+    color: var(--accent-color);
+}
+
+/* --- Remember Me --- */
+.remember-me {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.remember-me input[type="checkbox"] {
+    margin-right: 0.5rem;
+}
+
+.remember-me label {
+    font-size: 0.9rem;
+    color: var(--text-color-light);
+}
+
+.dark-mode .remember-me label {
+    color: var(--text-color-dark);
+}
+
+/* --- Button Loading State --- */
+.button-loader {
+    display: none;
+    width: 16px;
+    height: 16px;
+    border: 2px solid #ffffff;
+    border-radius: 50%;
+    border-top-color: transparent;
+    animation: spin 0.8s linear infinite;
+    margin-left: 8px;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.button.loading .button-text {
+    visibility: hidden;
+}
+
+.button.loading .button-loader {
+    display: block;
+}
+
+/* --- Error Message Improvements --- */
+.error-message {
+    background-color: rgba(207, 34, 46, 0.1);
+    border: 1px solid var(--error-color);
+    border-radius: var(--border-radius);
+    padding: 0.75rem;
+    margin-top: 1rem;
+    color: var(--error-color);
+    font-size: 0.9rem;
+    display: none;
+}
+
+.dark-mode .error-message {
+    background-color: rgba(207, 34, 46, 0.2);
+}

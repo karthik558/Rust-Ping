@@ -41,11 +41,68 @@ function initializeDefaultAdmin() {
     }
 }
 
+// Login attempt tracking
+const MAX_LOGIN_ATTEMPTS = 5;
+const LOCKOUT_DURATION = 15 * 60 * 1000; // 15 minutes in milliseconds
+
+function getLoginAttempts(username) {
+    const attempts = JSON.parse(localStorage.getItem('loginAttempts') || '{}');
+    return attempts[username] || { count: 0, timestamp: null };
+}
+
+function updateLoginAttempts(username, reset = false) {
+    const attempts = JSON.parse(localStorage.getItem('loginAttempts') || '{}');
+    
+    if (reset) {
+        delete attempts[username];
+    } else {
+        attempts[username] = {
+            count: (attempts[username]?.count || 0) + 1,
+            timestamp: new Date().getTime()
+        };
+    }
+    
+    localStorage.setItem('loginAttempts', JSON.stringify(attempts));
+    return attempts[username];
+}
+
+function isAccountLocked(username) {
+    const attempts = getLoginAttempts(username);
+    if (attempts.count >= MAX_LOGIN_ATTEMPTS) {
+        const timeDiff = new Date().getTime() - attempts.timestamp;
+        if (timeDiff < LOCKOUT_DURATION) {
+            const remainingTime = Math.ceil((LOCKOUT_DURATION - timeDiff) / 60000);
+            return `Account is temporarily locked. Please try again in ${remainingTime} minutes.`;
+        } else {
+            updateLoginAttempts(username, true);
+            return false;
+        }
+    }
+    return false;
+}
+
 // Handle login form submission
 function handleLogin(event) {
     event.preventDefault();
     const username = document.getElementById('username').value;
     const password = document.getElementById('password').value;
+    const errorMessageDiv = document.getElementById('errorMessage');
+    const loginButton = document.querySelector('.primary-button');
+
+    // Clear previous error messages
+    errorMessageDiv.style.display = 'none';
+    errorMessageDiv.textContent = '';
+
+    // Check if account is locked
+    const lockStatus = isAccountLocked(username);
+    if (lockStatus) {
+        errorMessageDiv.style.display = 'block';
+        errorMessageDiv.textContent = lockStatus;
+        return;
+    }
+
+    // Show loading state
+    loginButton.classList.add('loading');
 
     // Get users from localStorage
     const users = JSON.parse(localStorage.getItem('users') || '[]');
@@ -54,24 +111,42 @@ function handleLogin(event) {
     const user = users.find(u => u.username === username);
     
     if (!user) {
-        alert('Invalid username or password');
+        updateLoginAttempts(username);
+        errorMessageDiv.style.display = 'block';
+        errorMessageDiv.textContent = 'Invalid username or password';
+        loginButton.classList.remove('loading');
         return;
     }
 
     // Hash the provided password
     hashPassword(password).then(hashedPassword => {
         if (hashedPassword !== user.passwordHash) {
-            alert('Invalid username or password');
+            updateLoginAttempts(username);
+            errorMessageDiv.style.display = 'block';
+            errorMessageDiv.textContent = 'Invalid username or password';
+            loginButton.classList.remove('loading');
             return;
         }
 
-        // Set authentication cookie
-        document.cookie = "auth=true; path=/";
+        // Reset login attempts on successful login
+        updateLoginAttempts(username, true);
+
+        // Handle "Remember me" functionality
+        const rememberMe = document.getElementById('rememberMe').checked;
+        if (rememberMe) {
+            // Set a longer expiration for the auth cookie (30 days)
+            const expirationDate = new Date();
+            expirationDate.setDate(expirationDate.getDate() + 30);
+            document.cookie = `auth=true; path=/; expires=${expirationDate.toUTCString()}`;
+        } else {
+            document.cookie = "auth=true; path=/";
+        }
         
         // Store current user info
         localStorage.setItem('currentUser', JSON.stringify({
             username: user.username,
-            role: user.role
+            role: user.role,
+            lastLogin: new Date().toISOString()
         }));
 
         // Show welcome overlay for 2 seconds before redirecting
@@ -80,6 +155,7 @@ function handleLogin(event) {
         
         setTimeout(() => {
             welcomeOverlay.classList.remove('show');
+            loginButton.classList.remove('loading');
             // Redirect based on role
             if (user.role === 'admin') {
                 window.location.href = 'admin-dashboard.html';
@@ -142,6 +218,51 @@ function reloadCurrentPage() {
     window.location.reload();
 }
 
+// Password strength meter
+function updatePasswordStrength(password) {
+    const meter = document.querySelector('.meter-bar');
+    if (!meter) return;
+
+    const strength = calculatePasswordStrength(password);
+    meter.className = 'meter-bar';
+    
+    if (password.length === 0) {
+        meter.style.width = '0';
+        return;
+    }
+
+    switch (strength) {
+        case 1:
+            meter.classList.add('weak');
+            break;
+        case 2:
+            meter.classList.add('fair');
+            break;
+        case 3:
+            meter.classList.add('good');
+            break;
+        case 4:
+            meter.classList.add('strong');
+            break;
+    }
+}
+
+function calculatePasswordStrength(password) {
+    let strength = 0;
+    
+    // Length check
+    if (password.length >= 8) strength++;
+    if (password.length >= 12) strength++;
+    
+    // Character variety
+    if (/[A-Z]/.test(password) && /[a-z]/.test(password)) strength++;
+    if (/[0-9]/.test(password)) strength++;
+    if (/[!@#$%^&*(),.?":{}|<>]/.test(password)) strength++;
+    
+    // Normalize to 4 levels
+    return Math.min(4, Math.floor(strength * 1.5));
+}
+
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', () => {
     // Initialize default admin
@@ -173,4 +294,39 @@ document.addEventListener('DOMContentLoaded', () => {
     if (document.cookie.includes('auth=true')) {
         setupInactivityDetection();
     }
+
+    // Auto-focus username field
+    const usernameInput = document.getElementById('username');
+    if (usernameInput) {
+        usernameInput.focus();
+    }
+
+    // Add password toggle button click handler
+    const passwordToggle = document.querySelector('.password-toggle');
+    if (passwordToggle) {
+        passwordToggle.addEventListener('click', togglePasswordVisibility);
+    }
+
+    // Add password strength meter handler
+    const passwordInput = document.getElementById('password');
+    if (passwordInput) {
+        passwordInput.addEventListener('input', (e) => {
+            updatePasswordStrength(e.target.value);
+        });
+    }
+
+    // Add keyboard shortcut for login (Enter key)
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            const activeElement = document.activeElement;
+            const loginForm = document.getElementById('loginForm');
+            
+            if (loginForm && 
+                (activeElement === passwordInput || 
+                 activeElement === document.getElementById('username'))) {
+                e.preventDefault();
+                handleLogin(new Event('submit'));
+            }
+        }
+    });
 });
