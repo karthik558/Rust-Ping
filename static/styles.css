@@ -117,7 +117,7 @@ body.dark-mode {
 .navigation {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 1rem;
     flex-wrap: wrap;
     background-color: var(--card-background-light);
     border-radius: var(--border-radius);
@@ -1133,6 +1133,9 @@ td.status-warning {
 
 /* Update Indicator Styles */
 .update-indicator {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
     display: none;
     align-items: center;
     gap: 8px;

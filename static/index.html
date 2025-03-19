@@ -20,39 +20,43 @@
                 </a>
             </div>
             <nav class="navigation">
-                <input type="text" id="filterInput" placeholder="Filter by name/IP..." class="filter-input">
-                <button id="filterButton" class="nav-button"><i class="fas fa-filter"></i></button>
-                <button id="clearFilterButton" class="nav-button"><i class="fas fa-times"></i></button>
-                <button id="refreshButton" class="nav-button" title="Refresh Device Status">
-                    <i class="fas fa-sync-alt"></i> Refresh
-                </button>
-                <div id="updateIndicator" class="update-indicator">
-                    <i class="fas fa-circle-notch fa-spin"></i> Updating...
+                <div class="nav-items">
+                  <input type="text" id="filterInput" placeholder="Filter by name/IP..." class="filter-input">
+                  <button id="filterButton" class="nav-button"><i class="fas fa-filter"></i></button>
+                  <button id="clearFilterButton" class="nav-button"><i class="fas fa-times"></i></button>
+                  <button id="refreshButton" class="nav-button" title="Refresh Device Status">
+                      <i class="fas fa-sync-alt"></i> Refresh
+                  </button>
+                  <div class="nav-dropdown">
+                      <button class="nav-dropdown-btn" onclick="toggleDropdown(this)">
+                          <i class="fas fa-file-alt"></i> Logs
+                          <i class="fas fa-chevron-down"></i>
+                      </button>
+                      <div class="nav-dropdown-content">
+                          <a href="log_view.html" class="nav-dropdown-item">
+                              <i class="fas fa-file-alt"></i> Live Logs
+                          </a>
+                          <a href="failed_logs.html" class="nav-dropdown-item">
+                              <i class="fas fa-exclamation-triangle"></i> Failed Logs
+                          </a>
+                      </div>
+                  </div>
+                  <div class="nav-dropdown-overlay" onclick="closeAllDropdowns()"></div>
+                  <a href="manage-devices.html" class="nav-link" id="manageDevicesButton"><i class="fas fa-server"></i> Manage Devices</a>
+                  <a href="email_config.html" class="nav-link" id="emailConfigButton"><i class="fas fa-envelope"></i> Email Alerts</a>
                 </div>
-                <div class="nav-dropdown">
-                    <button class="nav-dropdown-btn">
-                        <i class="fas fa-file-alt"></i> Logs
-                        <i class="fas fa-chevron-down"></i>
-                    </button>
-                    <div class="nav-dropdown-content">
-                        <a href="log_view.html" class="nav-dropdown-item">
-                            <i class="fas fa-file-alt"></i> Live Logs
-                        </a>
-                        <a href="failed_logs.html" class="nav-dropdown-item">
-                            <i class="fas fa-exclamation-triangle"></i> Failed Logs
-                        </a>
-                    </div>
-                </div>
-                <a href="manage-devices.html" class="nav-link" id="manageDevicesButton"><i class="fas fa-server"></i> Manage Devices</a>
-                <a href="email_config.html" class="nav-link" id="emailConfigButton"><i class="fas fa-envelope"></i> Email Alerts</a>
+
                 <div class="user-profile">
                     <img id="userAvatar" src="https://ui-avatars.com/api/?name=admin&background=random&size=128&bold=true&color=fff" alt="User Avatar" class="avatar">
                     <span id="username" class="username"></span>
+                    <div class="dark-mode-toggle" onclick="toggleDarkMode()">
+                      <i class="fas fa-moon" id="darkModeIcon"></i>
+                  </div>
+                  <button onclick="logout()" class="logout-button"><i class="fas fa-sign-out-alt"></i> Logout</button>
                 </div>
-                <button onclick="logout()" class="nav-button logout-button"><i class="fas fa-sign-out-alt"></i> Logout</button>
             </nav>
-            <div class="dark-mode-toggle" onclick="toggleDarkMode()">
-                <i class="fas fa-moon"></i>
+            <div id="updateIndicator" class="update-indicator">
+                <i class="fas fa-circle-notch fa-spin"></i> Updating...
             </div>
         </header>
 
@@ -138,7 +142,6 @@
             © Copyright 2025. All rights reserved. Developed by KARTHIK LAL.
         </footer>
     </div>
-
     <script src="script.js"></script>
 </body>
 </html>
