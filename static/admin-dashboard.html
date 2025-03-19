@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RustPing | Admin Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" integrity="sha512-z3gLpd7yknf1YoNbCzqRKc4qyor8gaKU1qmn+CShxbuBusANI9QpRohGBreCFkKxLhei6S9CQXFEbbKuqLg0DA==" crossorigin="anonymous" referrerpolicy="no-referrer">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="admin-dashboard.css">
+    <link rel="icon" href="favicon.png" type="image/x-icon">
+</head>
+<body>
+    <div class="app-container">
+        <header class="header">
+            <div class="logo">
+                <a href="javascript:void(0)" onclick="reloadCurrentPage()" class="logo-link">
+                    <img src="logo-light.png" alt="RustPing Logo" id="logoImage">
+                    <span class="app-name">RustPing</span>
+                </a>
+            </div>
+            <nav class="navigation">
+                <a href="index.html" class="nav-link">
+                    <i class="fas fa-home"></i> Dashboard
+                </a>
+                <a href="admin-dashboard.html" class="nav-link active">
+                    <i class="fas fa-user-shield"></i> Admin Panel
+                </a>
+                <div class="nav-dropdown">
+                    <button class="nav-dropdown-btn">
+                        <i class="fas fa-file-alt"></i> Logs
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="nav-dropdown-content">
+                        <a href="log_view.html" class="nav-dropdown-item">
+                            <i class="fas fa-file-alt"></i> Live Logs
+                        </a>
+                        <a href="failed_logs.html" class="nav-dropdown-item">
+                            <i class="fas fa-exclamation-triangle"></i> Failed Logs
+                        </a>
+                    </div>
+                </div>
+                <div class="user-profile">
+                    <img id="userAvatar" src="https://ui-avatars.com/api/?name=admin&background=random&size=128&bold=true&color=fff" alt="User Avatar" class="avatar">
+                    <!-- <span id="username" class="username"></span> -->
+                </div>
+                <div class="dark-mode-toggle" onclick="toggleDarkMode()">
+                    <i class="fas fa-moon"></i>
+                </div>
+                <button onclick="logout()" class="nav-button logout-button">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </button>
+            </nav>
+        </header>
+
+        <main class="main-content">
+            <div class="admin-dashboard">
+                <div class="admin-grid">
+                    <div class="admin-card">
+                        <h2>User Management</h2>
+                        <div class="user-list" id="userList">
+                            <!-- Users will be loaded here -->
+                        </div>
+                        <button class="btn-primary" id="addUserBtn">
+                            <i class="fas fa-user-plus"></i> Add New User
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer class="footer">
+            © Copyright 2025. All rights reserved. Developed by KARTHIK LAL.
+        </footer>
+    </div>
+
+    <!-- Add User Modal -->
+    <div class="modal" id="addUserModal">
+        <div class="modal-content">
+            <h2>Add New User</h2>
+            <form id="addUserForm">
+                <div class="form-group">
+                    <label>Username</label>
+                    <input type="text" id="username" required>
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="password" required>
+                </div>
+                <div class="form-group">
+                    <label>Role</label>
+                    <select id="role" required>
+                        <option value="user">User</option>
+                        <option value="admin">Admin</option>
+                    </select>
+                </div>
+                <div class="modal-buttons">
+                    <button type="button" class="btn-secondary" id="cancelBtn">Cancel</button>
+                    <button type="submit" class="btn-primary">Add User</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+    <script src="admin-dashboard.js"></script>
+</body>
+</html> 

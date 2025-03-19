@@ -571,6 +571,12 @@ document.addEventListener("DOMContentLoaded", () => {
   if (allDevicesBtn) {
     allDevicesBtn.onclick = () => filterByCategory('all');
   }
+
+  // Check user role and update UI
+  checkUserRole();
+
+  // Update navigation with logout button
+  updateNavigation();
 });
 
 // Check authentication and setup inactivity detection
@@ -597,6 +603,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
 function logout() {
   document.cookie = "auth=true; max-age=0; path=/";
+  localStorage.removeItem('currentUser');
   window.location.href = '/static/login.html';
 }
 
@@ -895,4 +902,312 @@ document.addEventListener('DOMContentLoaded', () => {
     icon.style.transform = "rotate(0deg)";
   }
   updateChartsForDarkMode();
+});
+
+// Check user role and update UI
+function checkUserRole() {
+    const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+    const userRole = currentUser.role || 'user';
+    const username = currentUser.username || '';
+
+    // Update user profile
+    const userAvatar = document.getElementById('userAvatar');
+    if (userAvatar) {
+        // Generate avatar URL with proper encoding and size
+        const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(username)}&background=random&size=128&bold=true&color=fff`;
+        userAvatar.src = avatarUrl;
+        userAvatar.onerror = function() {
+            this.src = 'https://ui-avatars.com/api/?name=User&background=random&size=128&bold=true&color=fff';
+        };
+    }
+
+    // Update role-based access
+    const adminElements = document.querySelectorAll('[data-role="admin"]');
+    const userElements = document.querySelectorAll('[data-role="user"]');
+
+    if (userRole === 'admin') {
+        adminElements.forEach(el => el.style.display = 'block');
+        userElements.forEach(el => el.style.display = 'block');
+    } else {
+        adminElements.forEach(el => el.style.display = 'none');
+        userElements.forEach(el => el.style.display = 'block');
+    }
+
+    // Update navigation links
+    const manageDevicesButton = document.getElementById('manageDevicesButton');
+    const emailConfigButton = document.getElementById('emailConfigButton');
+    const adminPanelLink = document.querySelector('a[href="admin-dashboard.html"]');
+    
+    if (manageDevicesButton) {
+        manageDevicesButton.style.display = userRole === 'admin' ? 'inline-flex' : 'none';
+    }
+    
+    if (emailConfigButton) {
+        emailConfigButton.style.display = userRole === 'admin' ? 'inline-flex' : 'none';
+    }
+
+    if (adminPanelLink) {
+        adminPanelLink.style.display = userRole === 'admin' ? 'inline-flex' : 'none';
+    }
+
+    // Add click event to avatar for user profile popup
+    if (userAvatar) {
+        userAvatar.onclick = () => showUserProfilePopup();
+    }
+}
+
+// Show user profile popup
+function showUserProfilePopup() {
+    const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+    const popup = document.createElement('div');
+    popup.className = 'user-profile-popup';
+    popup.innerHTML = `
+        <div class="popup-content">
+            <div class="popup-header">
+                <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser.username)}&background=random" alt="User Avatar" class="popup-avatar">
+                <h3>${currentUser.username}</h3>
+                <span class="user-role">${currentUser.role}</span>
+            </div>
+            <div class="popup-body">
+                ${currentUser.role === 'admin' ? `
+                    <button onclick="window.location.href='admin-dashboard.html'">
+                        <i class="fas fa-user-shield"></i>
+                        Access Admin Dashboard
+                    </button>
+                ` : ''}
+                <button onclick="resetPassword()">
+                    <i class="fas fa-key"></i>
+                    Change Password
+                </button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(popup);
+
+    // Close popup when clicking outside
+    popup.addEventListener('click', (e) => {
+        if (e.target === popup) {
+            popup.remove();
+        }
+    });
+}
+
+// Show change password modal
+function showChangePasswordModal() {
+    // Remove any existing modals
+    const existingModal = document.querySelector('.modal');
+    if (existingModal) {
+        existingModal.remove();
+    }
+
+    const modal = document.createElement('div');
+    modal.className = 'modal active';
+    modal.innerHTML = `
+        <div class="modal-content">
+            <h2>Change Password</h2>
+            <form id="changePasswordForm">
+                <div class="form-group">
+                    <label>Current Password</label>
+                    <input type="password" id="currentPassword" required>
+                </div>
+                <div class="form-group">
+                    <label>New Password</label>
+                    <input type="password" id="newPassword" required>
+                </div>
+                <div class="form-group">
+                    <label>Confirm New Password</label>
+                    <input type="password" id="confirmPassword" required>
+                </div>
+                <div class="modal-buttons">
+                    <button type="button" class="btn-secondary" onclick="this.closest('.modal').remove()">Cancel</button>
+                    <button type="submit" class="btn-primary">Change Password</button>
+                </div>
+            </form>
+        </div>
+    `;
+    document.body.appendChild(modal);
+
+    // Handle form submission
+    const form = modal.querySelector('#changePasswordForm');
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const currentPassword = document.getElementById('currentPassword').value;
+        const newPassword = document.getElementById('newPassword').value;
+        const confirmPassword = document.getElementById('confirmPassword').value;
+
+        if (newPassword !== confirmPassword) {
+            alert('New passwords do not match');
+            return;
+        }
+
+        if (!validatePassword(newPassword)) {
+            alert('Password does not meet the requirements');
+            return;
+        }
+
+        const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+        const users = JSON.parse(localStorage.getItem('users') || '[]');
+        const user = users.find(u => u.username === currentUser.username);
+
+        if (!user) {
+            alert('User not found');
+            return;
+        }
+
+        const currentPasswordHash = await hashPassword(currentPassword);
+        if (currentPasswordHash !== user.passwordHash) {
+            alert('Current password is incorrect');
+            return;
+        }
+
+        user.passwordHash = await hashPassword(newPassword);
+        localStorage.setItem('users', JSON.stringify(users));
+        alert('Password changed successfully');
+        modal.remove();
+    });
+
+    // Close modal when clicking outside
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            modal.remove();
+        }
+    });
+}
+
+// Update navigation to include logout button
+function updateNavigation() {
+    const navigation = document.querySelector('.navigation');
+    if (!navigation) return;
+
+    // Remove existing logout button if any
+    const existingLogout = navigation.querySelector('.logout-button');
+    if (existingLogout) {
+        existingLogout.remove();
+    }
+
+    // Add logout button next to dark mode toggle
+    const darkModeToggle = document.querySelector('.dark-mode-toggle');
+    if (darkModeToggle) {
+        const logoutButton = document.createElement('button');
+        logoutButton.className = 'nav-button logout-button';
+        logoutButton.innerHTML = '<i class="fas fa-sign-out-alt"></i> Logout';
+        logoutButton.onclick = logout;
+        darkModeToggle.parentNode.insertBefore(logoutButton, darkModeToggle.nextSibling);
+    }
+}
+
+function handleLogin(event) {
+    event.preventDefault();
+    const username = document.getElementById('username').value;
+    const password = document.getElementById('password').value;
+
+    // Get users from localStorage
+    const users = JSON.parse(localStorage.getItem('users') || '[]');
+    
+    // Find user
+    const user = users.find(u => u.username === username);
+    
+    if (!user) {
+        alert('Invalid username or password');
+        return;
+    }
+
+    // Hash the provided password
+    hashPassword(password).then(hashedPassword => {
+        if (hashedPassword !== user.passwordHash) {
+            alert('Invalid username or password');
+            return;
+        }
+
+        // Set authentication cookie
+        document.cookie = "auth=true; path=/";
+        
+        // Store current user info
+        localStorage.setItem('currentUser', JSON.stringify({
+            username: user.username,
+            role: user.role
+        }));
+
+        // Redirect based on role
+        if (user.role === 'admin') {
+            window.location.href = 'admin-dashboard.html';
+        } else {
+            window.location.href = 'index.html';
+        }
+    });
+}
+
+// Initialize default admin if no users exist
+function initializeDefaultAdmin() {
+    const users = JSON.parse(localStorage.getItem('users') || '[]');
+    if (users.length === 0) {
+        const defaultAdmin = {
+            username: 'admin',
+            passwordHash: '8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918', // admin
+            role: 'admin'
+        };
+        users.push(defaultAdmin);
+        localStorage.setItem('users', JSON.stringify(users));
+    }
+}
+
+// Hash password function
+async function hashPassword(password) {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(password);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    return hashHex;
+}
+
+// Initialize default admin on page load
+document.addEventListener('DOMContentLoaded', () => {
+    initializeDefaultAdmin();
+    
+    // Add login form submit handler
+    const loginForm = document.getElementById('loginForm');
+    if (loginForm) {
+        loginForm.addEventListener('submit', handleLogin);
+    }
+});
+
+// Handle dropdown menu
+function handleDropdownMenu() {
+    const dropdowns = document.querySelectorAll('.nav-dropdown');
+    
+    dropdowns.forEach(dropdown => {
+        const btn = dropdown.querySelector('.nav-dropdown-btn');
+        const overlay = document.createElement('div');
+        overlay.className = 'nav-dropdown-overlay';
+        dropdown.parentNode.insertBefore(overlay, dropdown.nextSibling);
+        
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            dropdown.classList.toggle('active');
+        });
+        
+        overlay.addEventListener('click', () => {
+            dropdown.classList.remove('active');
+        });
+        
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!dropdown.contains(e.target)) {
+                dropdown.classList.remove('active');
+            }
+        });
+        
+        // Close dropdown when pressing Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && dropdown.classList.contains('active')) {
+                dropdown.classList.remove('active');
+            }
+        });
+    });
+}
+
+// Initialize dropdown menu when DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+    handleDropdownMenu();
 });
