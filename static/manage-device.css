@@ -1,4 +1,4 @@
-/* styles.css */
+@import url(styles.css);
 
 /* --- Global Variables --- */
 :root {
@@ -684,7 +684,7 @@ body.dark-mode {
 .device-form {
     display: grid;
     gap: 1rem;
-    max-width: 600px; /* Or whatever width you prefer */
+    max-width: 700px;
     margin: 0 auto; /* Center the form */
 }
 
@@ -789,4 +789,8 @@ body.dark-mode {
 
 .secondary-button:hover {
     background-color: #7f8c8d;
+}
+
+.http-path-group {
+  transition: all 0.3s ease;
 }

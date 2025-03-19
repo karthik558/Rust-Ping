@@ -6,33 +6,36 @@
     <title>RustPing | Device Management</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-    <link rel="stylesheet" href="manage-device.css">  <!-- Make sure this styles.css is the SAME as the one used by index.html -->
-    <link rel="icon" href="favicon.png" type="image/x-icon"> <!-- Added favicon -->
+    <link rel="stylesheet" href="manage-device.css">
+    <link rel="icon" href="favicon.png" type="image/x-icon">
 </head>
 <body>
     <div class="app-container">
         <header class="header">
             <div class="logo">
-                <a href="index.html" class="logo-link">  <!--  Link back to the main dashboard -->
+                <a href="index.html" class="logo-link">
                     <img src="logo-light.png" alt="RustPing Logo" id="logoImage">
                     <span class="app-name">RustPing</span>
                 </a>
             </div>
             <nav class="navigation">
-                <!-- Navigation links, consistent with index.html -->
-                <a href="index.html" class="nav-link"><i class="fas fa-home"></i> Dashboard</a> <!-- Added dashboard icon -->
-                <a href="log_view.html" class="nav-link"><i class="fas fa-file-alt"></i> Live Logs</a>
-                <a href="failed_logs.html" class="nav-link"><i class="fas fa-exclamation-triangle"></i> Failed Logs</a>
-                 <a href="manage-devices.html" class="nav-link active" id="manageDevicesButton"><i class="fas fa-server"></i> Manage Devices</a>
-                <button onclick="logout()" class="nav-button logout-button"><i class="fas fa-sign-out-alt"></i> Logout</button>
+                <div class="nav-items">
+                    <a href="index.html" class="nav-link"><i class="fas fa-home"></i> Dashboard</a>
+                    <a href="log_view.html" class="nav-link"><i class="fas fa-file-alt"></i> Live Logs</a>
+                    <a href="failed_logs.html" class="nav-link"><i class="fas fa-exclamation-triangle"></i> Failed Logs</a>
+                    <a href="manage-devices.html" class="nav-link active" id="manageDevicesButton"><i class="fas fa-server"></i> Manage Devices</a>
+                </div>
+                <div class="user-profile">
+                    <div class="dark-mode-toggle" onclick="toggleDarkMode()">
+                        <i class="fas fa-moon" id="darkModeIcon"></i>
+                    </div>
+                    <button onclick="logout()" class="logout-button"><i class="fas fa-sign-out-alt"></i> Logout</button>
+                </div>
             </nav>
-            <div class="dark-mode-toggle" onclick="toggleDarkMode()">
-                <i class="fas fa-moon"></i>
-            </div>
         </header>
 
         <main class="main-content">
-            <section class="device-management-section">  <!--  Keep the specific section class -->
+            <section class="device-management-section">
                 <div class="card">
                     <h2 class="section-title" id="formTitle">Add Device</h2>
                     <form id="deviceForm" class="device-form">
@@ -57,7 +60,6 @@
                                 <option value="Access Point">Access Point</option>
                                 <option value="CCTV">CCTV</option>
                                 <option value="Load Balancer">Load Balancer</option>
-
                                 <option value="Custom">Custom Category</option>
                             </select>
                             <div id="customCategoryGroup" style="display: none; margin-top: 10px;">
@@ -108,25 +110,64 @@
             </section>
         </main>
 
-        <footer class="footer">  <!--  Consistent footer -->
+        <footer class="footer">
             © Copyright 2025. All rights reserved. Developed by KARTHIK LAL.
         </footer>
     </div>
 
-    <script src="manage-devices.js"></script>
-     <script>
-        // Add active class to the current button (highlight it)
+    <script src="manage-devices.js"></script> 
+    <script>
         document.addEventListener("DOMContentLoaded", function() {
             const navLinks = document.querySelectorAll(".navigation .nav-link");
             const currentPath = window.location.pathname;
 
             navLinks.forEach(link => {
-
               if (link.href.endsWith(currentPath)) {
                 link.classList.add("active");
               }
             });
         });
+         function toggleDarkMode() {
+            const body = document.body;
+            const darkModeIcon = document.getElementById('darkModeIcon');
+            body.classList.toggle('dark-mode');
+
+            if (body.classList.contains('dark-mode')) {
+                darkModeIcon.classList.remove('fa-moon');
+                darkModeIcon.classList.add('fa-sun');
+            } else {
+                darkModeIcon.classList.remove('fa-sun');
+                darkModeIcon.classList.add('fa-moon');
+            }
+            const isDarkMode = body.classList.contains('dark-mode');
+            localStorage.setItem('darkMode', isDarkMode);
+            updateLogo();
+        }
+
+          function updateLogo() {
+            const logoImage = document.getElementById('logoImage');
+            const isDarkMode = document.body.classList.contains('dark-mode');
+
+            if (isDarkMode) {
+                logoImage.src = 'logo-dark.png';
+            } else {
+                logoImage.src = 'logo-light.png';
+            }
+        }
+        document.addEventListener('DOMContentLoaded', function() {
+            const isDarkMode = localStorage.getItem('darkMode') === 'true';
+            if (isDarkMode) {
+                document.body.classList.add('dark-mode');
+                document.getElementById('darkModeIcon').classList.remove('fa-moon');
+                document.getElementById('darkModeIcon').classList.add('fa-sun');
+                updateLogo()
+            } else {
+                updateLogo()
+            }
+        });
+        function logout() {
+          alert("You have clicked logout")
+        }
 
     </script>
 </body>
