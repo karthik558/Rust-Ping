@@ -654,3 +654,163 @@
         opacity: 1;
     }
 }
+
+/* --- Analytics Dashboard --- */
+.dashboard-section {
+    background: var(--card-background-light);
+    border: 1px solid var(--border-color-light);
+    border-radius: var(--border-radius);
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    transition: background-color var(--transition-speed), border-color var(--transition-speed);
+}
+
+.dark-mode .dashboard-section {
+    background: var(--card-background-dark);
+    border-color: var(--border-color-dark);
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border-color-light);
+}
+
+.dark-mode .section-header {
+    border-color: var(--border-color-dark);
+}
+
+.section-header h2 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-color-light);
+    margin: 0;
+}
+
+.dark-mode .section-header h2 {
+    color: var(--text-color-dark);
+}
+
+.graph-controls {
+    display: flex;
+    gap: 0.75rem;
+}
+
+.graph-settings-panel {
+    background: var(--background-color-light);
+    border: 1px solid var(--border-color-light);
+    border-radius: var(--border-radius);
+    padding: 1.25rem;
+    margin-bottom: 1.5rem;
+    display: none;
+    box-shadow: var(--box-shadow);
+}
+
+.dark-mode .graph-settings-panel {
+    background: var(--background-color-dark);
+    border-color: var(--border-color-dark);
+}
+
+.graph-settings-panel.active {
+    display: block;
+}
+
+.graph-settings-panel h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 0 0 1rem 0;
+    color: var(--text-color-light);
+}
+
+.dark-mode .graph-settings-panel h3 {
+    color: var(--text-color-dark);
+}
+
+.graph-toggles {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+.toggle-label {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.625rem;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    color: var(--text-color-light);
+    transition: all var(--transition-speed);
+    font-size: 0.875rem;
+}
+
+.dark-mode .toggle-label {
+    color: var(--text-color-dark);
+}
+
+.toggle-label:hover {
+    background: var(--table-row-hover-light);
+}
+
+.dark-mode .toggle-label:hover {
+    background: var(--table-row-hover-dark);
+}
+
+.toggle-label input[type="checkbox"] {
+    width: 1rem;
+    height: 1rem;
+    cursor: pointer;
+    accent-color: var(--accent-color);
+}
+
+.graphs-container {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+}
+
+@media (max-width: 1200px) {
+    .graphs-container {
+        grid-template-columns: 1fr;
+    }
+}
+
+.graph-card {
+    background: var(--background-color-light);
+    border: 1px solid var(--border-color-light);
+    border-radius: var(--border-radius);
+    padding: 1.25rem;
+    transition: all var(--transition-speed);
+    height: fit-content;
+}
+
+.dark-mode .graph-card {
+    background: var(--background-color-dark);
+    border-color: var(--border-color-dark);
+}
+
+.graph-card.hidden {
+    display: none;
+}
+
+.graph-card h3 {
+    margin: 0 0 1rem 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-color-light);
+}
+
+.dark-mode .graph-card h3 {
+    color: var(--text-color-dark);
+}
+
+.graph-card canvas {
+    aspect-ratio: 16/9;
+    width: 100% !important;
+    height: auto !important;
+    max-height: 300px;
+}

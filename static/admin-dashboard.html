@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="admin-dashboard.css">
     <link rel="icon" href="favicon.png" type="image/x-icon">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
     <div class="app-container">
@@ -88,6 +89,58 @@
                     </table>
                     <div id="noLockedUsers" class="no-data-message">
                         No locked user accounts found.
+                    </div>
+                </div>
+            </div>
+
+            <div class="dashboard-section">
+                <div class="section-header">
+                    <h2>Analytics Dashboard</h2>
+                    <div class="graph-controls">
+                        <button class="btn-secondary" onclick="toggleGraphSettings()">
+                            <i class="fas fa-cog"></i> Customize Graphs
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="graph-settings-panel" id="graphSettings">
+                    <h3>Select Graphs to Display</h3>
+                    <div class="graph-toggles">
+                        <label class="toggle-label">
+                            <input type="checkbox" id="userActivityGraph" checked>
+                            User Activity Timeline
+                        </label>
+                        <label class="toggle-label">
+                            <input type="checkbox" id="accountStatusGraph" checked>
+                            Account Status Distribution
+                        </label>
+                        <label class="toggle-label">
+                            <input type="checkbox" id="userRoleGraph" checked>
+                            User Role Distribution
+                        </label>
+                        <label class="toggle-label">
+                            <input type="checkbox" id="loginRateGraph" checked>
+                            Login Success/Failure Rate
+                        </label>
+                    </div>
+                </div>
+
+                <div class="graphs-container">
+                    <div class="graph-card" id="userActivityCard">
+                        <h3>User Activity Timeline</h3>
+                        <canvas id="userActivityChart"></canvas>
+                    </div>
+                    <div class="graph-card" id="accountStatusCard">
+                        <h3>Account Status Distribution</h3>
+                        <canvas id="accountStatusChart"></canvas>
+                    </div>
+                    <div class="graph-card" id="userRoleCard">
+                        <h3>User Role Distribution</h3>
+                        <canvas id="userRoleChart"></canvas>
+                    </div>
+                    <div class="graph-card" id="loginRateCard">
+                        <h3>Login Success/Failure Rate</h3>
+                        <canvas id="loginRateChart"></canvas>
                     </div>
                 </div>
             </div>

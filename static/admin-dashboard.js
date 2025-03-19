@@ -16,7 +16,13 @@ document.addEventListener('DOMContentLoaded', () => {
     updateUserProfile();
     handleDropdownMenu();
     updateLockedUsersTable();
-    setInterval(updateLockedUsersTable, 30000);
+    initializeGraphs();
+    
+    // Update data periodically
+    setInterval(() => {
+        updateLockedUsersTable();
+        updateGraphs();
+    }, 30000);
 });
 
 // Setup event listeners
@@ -427,4 +433,314 @@ function unlockUserAccount(username) {
     delete attempts[username];
     localStorage.setItem('loginAttempts', JSON.stringify(attempts));
     console.log('Updated login attempts:', attempts);
+}
+
+// Charts configuration
+let charts = {
+    userActivity: null,
+    accountStatus: null,
+    userRole: null,
+    loginRate: null
+};
+
+// Initialize graphs
+function initializeGraphs() {
+    Chart.defaults.font.family = "'Inter', sans-serif";
+    Chart.defaults.font.size = 12;
+    Chart.defaults.plugins.legend.labels.usePointStyle = true;
+    Chart.defaults.plugins.legend.labels.padding = 15;
+    Chart.defaults.plugins.legend.labels.boxWidth = 8;
+    Chart.defaults.plugins.legend.labels.pointStyle = 'circle';
+
+    const commonOptions = {
+        responsive: true,
+        maintainAspectRatio: true,
+        plugins: {
+            legend: {
+                position: 'top',
+                align: 'start',
+                labels: {
+                    color: document.body.classList.contains('dark-mode') ? '#e6edf3' : '#24292f'
+                }
+            }
+        }
+    };
+
+    // User Activity Timeline
+    const userActivityCtx = document.getElementById('userActivityChart').getContext('2d');
+    charts.userActivity = new Chart(userActivityCtx, {
+        type: 'line',
+        data: {
+            labels: getLast7Days(),
+            datasets: [{
+                label: 'Login Attempts',
+                data: getLoginAttemptData(),
+                borderColor: '#0969da',
+                tension: 0.4,
+                fill: true,
+                backgroundColor: 'rgba(9, 105, 218, 0.1)',
+                pointBackgroundColor: '#0969da',
+                pointBorderColor: '#fff',
+                pointRadius: 4,
+                pointHoverRadius: 6
+            }]
+        },
+        options: {
+            ...commonOptions,
+            scales: {
+                x: {
+                    grid: {
+                        display: false
+                    },
+                    ticks: {
+                        color: document.body.classList.contains('dark-mode') ? '#e6edf3' : '#24292f'
+                    }
+                },
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1,
+                        color: document.body.classList.contains('dark-mode') ? '#e6edf3' : '#24292f'
+                    },
+                    grid: {
+                        color: document.body.classList.contains('dark-mode') ? 'rgba(230, 237, 243, 0.1)' : 'rgba(36, 41, 47, 0.1)'
+                    }
+                }
+            }
+        }
+    });
+
+    // Account Status Distribution
+    const accountStatusCtx = document.getElementById('accountStatusChart').getContext('2d');
+    charts.accountStatus = new Chart(accountStatusCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Active', 'Locked'],
+            datasets: [{
+                data: getAccountStatusData(),
+                backgroundColor: ['#2da44e', '#cf222e'],
+                borderWidth: 0,
+                hoverOffset: 4
+            }]
+        },
+        options: {
+            ...commonOptions,
+            cutout: '65%',
+            radius: '90%'
+        }
+    });
+
+    // User Role Distribution
+    const userRoleCtx = document.getElementById('userRoleChart').getContext('2d');
+    charts.userRole = new Chart(userRoleCtx, {
+        type: 'pie',
+        data: {
+            labels: ['Admins', 'Regular Users'],
+            datasets: [{
+                data: getUserRoleData(),
+                backgroundColor: ['#0969da', '#6e7781'],
+                borderWidth: 0,
+                hoverOffset: 4
+            }]
+        },
+        options: {
+            ...commonOptions,
+            radius: '90%'
+        }
+    });
+
+    // Login Success/Failure Rate
+    const loginRateCtx = document.getElementById('loginRateChart').getContext('2d');
+    charts.loginRate = new Chart(loginRateCtx, {
+        type: 'bar',
+        data: {
+            labels: getLast7Days(),
+            datasets: [{
+                label: 'Successful Logins',
+                data: getLoginSuccessData(),
+                backgroundColor: '#2da44e',
+                borderRadius: 4,
+                barPercentage: 0.6,
+                categoryPercentage: 0.7
+            }, {
+                label: 'Failed Logins',
+                data: getLoginFailureData(),
+                backgroundColor: '#cf222e',
+                borderRadius: 4,
+                barPercentage: 0.6,
+                categoryPercentage: 0.7
+            }]
+        },
+        options: {
+            ...commonOptions,
+            scales: {
+                x: {
+                    grid: {
+                        display: false
+                    },
+                    ticks: {
+                        color: document.body.classList.contains('dark-mode') ? '#e6edf3' : '#24292f'
+                    }
+                },
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1,
+                        color: document.body.classList.contains('dark-mode') ? '#e6edf3' : '#24292f'
+                    },
+                    grid: {
+                        color: document.body.classList.contains('dark-mode') ? 'rgba(230, 237, 243, 0.1)' : 'rgba(36, 41, 47, 0.1)'
+                    }
+                }
+            }
+        }
+    });
+
+    // Setup graph visibility toggles
+    setupGraphToggles();
+
+    // Update chart colors when dark mode changes
+    document.addEventListener('darkModeChanged', updateChartColors);
+}
+
+// Update chart colors based on dark mode
+function updateChartColors(e) {
+    const isDarkMode = e?.detail?.isDarkMode ?? document.body.classList.contains('dark-mode');
+    const textColor = isDarkMode ? '#e6edf3' : '#24292f';
+    const gridColor = isDarkMode ? 'rgba(230, 237, 243, 0.1)' : 'rgba(36, 41, 47, 0.1)';
+
+    Object.values(charts).forEach(chart => {
+        if (!chart) return;
+
+        // Update legend colors
+        chart.options.plugins.legend.labels.color = textColor;
+
+        // Update axis colors for line and bar charts
+        if (chart.config.type === 'line' || chart.config.type === 'bar') {
+            chart.options.scales.x.ticks.color = textColor;
+            chart.options.scales.y.ticks.color = textColor;
+            chart.options.scales.y.grid.color = gridColor;
+        }
+
+        chart.update();
+    });
+}
+
+// Helper functions for data
+function getLast7Days() {
+    const days = [];
+    for (let i = 6; i >= 0; i--) {
+        const date = new Date();
+        date.setDate(date.getDate() - i);
+        days.push(date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
+    }
+    return days;
+}
+
+function getLoginAttemptData() {
+    const attempts = JSON.parse(localStorage.getItem('loginAttempts') || '{}');
+    const last7Days = new Array(7).fill(0);
+    
+    Object.values(attempts).forEach(data => {
+        const date = new Date(data.timestamp);
+        const dayIndex = Math.floor((Date.now() - date) / (1000 * 60 * 60 * 24));
+        if (dayIndex >= 0 && dayIndex < 7) {
+            last7Days[6 - dayIndex] += 1;
+        }
+    });
+    
+    return last7Days;
+}
+
+function getAccountStatusData() {
+    const attempts = JSON.parse(localStorage.getItem('loginAttempts') || '{}');
+    const users = JSON.parse(localStorage.getItem('users') || '[]');
+    let lockedCount = 0;
+    
+    Object.entries(attempts).forEach(([username, data]) => {
+        const user = users.find(u => u.username === username);
+        const maxAttempts = user?.role === 'admin' ? 10 : 3;
+        if (data.count >= maxAttempts) lockedCount++;
+    });
+    
+    return [users.length - lockedCount, lockedCount];
+}
+
+function getUserRoleData() {
+    const users = JSON.parse(localStorage.getItem('users') || '[]');
+    const adminCount = users.filter(user => user.role === 'admin').length;
+    return [adminCount, users.length - adminCount];
+}
+
+function getLoginSuccessData() {
+    // Implement actual login success tracking
+    return new Array(7).fill(0).map(() => Math.floor(Math.random() * 5));
+}
+
+function getLoginFailureData() {
+    const attempts = JSON.parse(localStorage.getItem('loginAttempts') || '{}');
+    const last7Days = new Array(7).fill(0);
+    
+    Object.values(attempts).forEach(data => {
+        const date = new Date(data.timestamp);
+        const dayIndex = Math.floor((Date.now() - date) / (1000 * 60 * 60 * 24));
+        if (dayIndex >= 0 && dayIndex < 7) {
+            last7Days[6 - dayIndex] += 1;
+        }
+    });
+    
+    return last7Days;
+}
+
+// Graph visibility controls
+function setupGraphToggles() {
+    const toggles = {
+        userActivityGraph: document.getElementById('userActivityCard'),
+        accountStatusGraph: document.getElementById('accountStatusCard'),
+        userRoleGraph: document.getElementById('userRoleCard'),
+        loginRateGraph: document.getElementById('loginRateCard')
+    };
+
+    Object.entries(toggles).forEach(([id, card]) => {
+        const checkbox = document.getElementById(id);
+        if (checkbox && card) {
+            // Apply saved preference
+            const isVisible = localStorage.getItem(id) !== 'hidden';
+            checkbox.checked = isVisible;
+            card.classList.toggle('hidden', !isVisible);
+
+            // Handle changes
+            checkbox.addEventListener('change', (e) => {
+                const isChecked = e.target.checked;
+                card.classList.toggle('hidden', !isChecked);
+                localStorage.setItem(id, isChecked ? 'visible' : 'hidden');
+            });
+        }
+    });
+}
+
+function toggleGraphSettings() {
+    const panel = document.getElementById('graphSettings');
+    panel.classList.toggle('active');
+}
+
+// Update graphs periodically
+function updateGraphs() {
+    if (charts.userActivity) {
+        charts.userActivity.data.datasets[0].data = getLoginAttemptData();
+        charts.userActivity.update();
+    }
+    if (charts.accountStatus) {
+        charts.accountStatus.data.datasets[0].data = getAccountStatusData();
+        charts.accountStatus.update();
+    }
+    if (charts.userRole) {
+        charts.userRole.data.datasets[0].data = getUserRoleData();
+        charts.userRole.update();
+    }
+    if (charts.loginRate) {
+        charts.loginRate.data.datasets[0].data = getLoginSuccessData();
+        charts.loginRate.data.datasets[1].data = getLoginFailureData();
+        charts.loginRate.update();
+    }
 }
