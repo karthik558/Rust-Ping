@@ -1,31 +1,44 @@
 /* Admin Dashboard Styles */
 .admin-dashboard {
-    padding: 20px;
+    padding: var(--spacing-unit);
 }
 
 .admin-grid {
     display: grid;
-    gap: 20px;
+    gap: var(--spacing-unit);
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
 }
 
 .admin-card {
-    background: var(--card-bg);
-    border-radius: 8px;
-    padding: 20px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    background: var(--card-background-light);
+    border-radius: var(--border-radius);
+    padding: var(--spacing-unit);
+    box-shadow: var(--box-shadow);
+    border: 1px solid var(--border-color-light);
+    transition: background-color var(--transition-speed), box-shadow var(--transition-speed), border-color var(--transition-speed);
+}
+
+.dark-mode .admin-card {
+    background: var(--card-background-dark);
+    box-shadow: var(--shadow-color-dark);
+    border-color: var(--border-color-dark);
 }
 
 .admin-card h2 {
-    margin: 0 0 20px 0;
-    color: var(--text-color);
+    margin: 0 0 var(--spacing-unit) 0;
+    color: var(--text-color-light);
     font-size: 1.5em;
+    transition: color var(--transition-speed);
+}
+
+.dark-mode .admin-card h2 {
+    color: var(--text-color-dark);
 }
 
 .user-list {
     max-height: 400px;
     overflow-y: auto;
-    margin-bottom: 20px;
+    margin-bottom: var(--spacing-unit);
 }
 
 .user-item {
@@ -33,7 +46,12 @@
     align-items: center;
     justify-content: space-between;
     padding: 12px;
-    border-bottom: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color-light);
+    transition: border-color var(--transition-speed);
+}
+
+.dark-mode .user-item {
+    border-bottom: 1px solid var(--border-color-dark);
 }
 
 .user-item:last-child {
@@ -56,8 +74,9 @@
     color: white;
     font-weight: bold;
     font-size: 1.2em;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    transition: transform 0.3s ease;
+    box-shadow: var(--box-shadow);
+    transition: transform var(--transition-speed), box-shadow var(--transition-speed);
+    background-color: var(--primary-color); /* Added background color */
 }
 
 .user-avatar:hover {
@@ -75,12 +94,21 @@
 
 .user-name {
     font-weight: 500;
-    color: var(--text-color);
+    color: var(--text-color-light);
+    transition: color var(--transition-speed);
+}
+.dark-mode .user-name{
+    color: var(--text-color-dark)
 }
 
 .user-role {
-    font-size: 0.9em;
-    color: var(--text-secondary);
+    font-size: 0.875rem; /* Consistent with main.css */
+    color: white;
+     transition: color var(--transition-speed);
+}
+.dark-mode .user-role{
+        color: var(--text-color-dark);
+
 }
 
 .user-actions {
@@ -88,65 +116,85 @@
     gap: 8px;
 }
 
+/* Use consistent button styles from main.css */
 .btn-primary {
-    background-color: var(--primary-color);
+    background-color: var(--accent-color);
     color: white;
     border: none;
-    padding: 8px 16px;
-    border-radius: 4px;
+    padding: 0.375rem 0.75rem; /* Consistent padding */
+    border-radius: var(--border-radius);
     cursor: pointer;
-    display: flex;
+    display: inline-flex;
     align-items: center;
-    gap: 8px;
-    transition: background-color 0.3s;
+    gap: 0.5rem;
+    transition: background-color var(--transition-speed);
+    font-size: 0.875rem;
+    line-height: 1;
 }
 
 .btn-primary:hover {
-    background-color: var(--primary-hover);
+    opacity: 0.9;
 }
 
 .btn-secondary {
-    background-color: var(--secondary-color);
-    color: var(--text-color);
-    border: 1px solid var(--border-color);
-    padding: 8px 16px;
-    border-radius: 4px;
+    background-color: var(--card-background-light);
+    border: 1px solid var(--border-color-light);
+    color: var(--text-color-light);
+    padding: 0.375rem 0.75rem; /* Consistent padding */
+    border-radius: var(--border-radius);
     cursor: pointer;
-    transition: all 0.3s;
+    transition: background-color var(--transition-speed), color var(--transition-speed), border-color var(--transition-speed);
+    font-size: 0.875rem;
+     line-height: 1;
+}
+
+.dark-mode .btn-secondary {
+    background-color: var(--card-background-dark);
+    border-color: var(--border-color-dark);
+    color: var(--text-color-dark);
 }
 
 .btn-secondary:hover {
-    background-color: var(--secondary-hover);
+    background-color: var(--table-row-hover-light);
+     color: var(--accent-color);
+    border-color: var(--border-color-light);
+}
+.dark-mode .btn-secondary:hover {
+    background-color: var(--table-row-hover-dark);
+     color: var(--accent-color);
+    border-color: var(--border-color-dark);
 }
 
 .btn-icon {
     background: none;
     border: none;
-    padding: 8px;
-    border-radius: 4px;
+    padding:  0.375rem 0.75rem;
+    border-radius: var(--border-radius);
     cursor: pointer;
-    color: var(--text-secondary);
-    transition: all 0.3s ease;
+    color: var(--text-color-light);
+    transition: all var(--transition-speed);
+    font-size: 0.875rem;
+    line-height: 1;
+     display: inline-flex;
+    align-items: center;
 }
 
 .btn-icon:hover {
-    background-color: var(--hover-color);
-    color: var(--primary-color);
-    transform: translateY(-1px);
+    background-color: var(--table-row-hover-light);
+    color: var(--accent-color);
 }
 
 .dark-mode .btn-icon {
-    color: var(--dark-text-secondary);
+    color: var(--text-color-dark);
 }
 
 .dark-mode .btn-icon:hover {
-    background-color: var(--dark-hover-color);
-    color: var(--primary-color);
+    background-color: var(--table-row-hover-dark);
 }
 
 /* Modal Styles */
 .modal {
-    display: none;
+    display: none; /* Hidden by default */
     position: fixed;
     top: 0;
     left: 0;
@@ -154,84 +202,104 @@
     height: 100%;
     background-color: rgba(0, 0, 0, 0.5);
     z-index: 1000;
-    justify-content: center;
-    align-items: center;
+    justify-content: center; /* Center horizontally */
+    align-items: center; /* Center vertically */
 }
 
 .modal.active {
-    display: flex !important;
+     display: flex !important;
 }
 
 .modal-content {
-    background: var(--card-bg);
-    padding: 24px;
-    border-radius: 8px;
+  background: var(--card-background-light);
+    border-radius: var(--border-radius);
+    padding: var(--spacing-unit);
     width: 100%;
     max-width: 400px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    box-shadow: var(--box-shadow);
+    border: 1px solid var(--border-color-light);
+    transition: background-color var(--transition-speed), box-shadow var(--transition-speed), border-color var(--transition-speed);
+}
+
+.dark-mode .modal-content {
+    background: var(--card-background-dark);
+    box-shadow: var(--shadow-color-dark);
+    border-color: var(--border-color-dark);
 }
 
 .modal-content h2 {
-    margin: 0 0 20px 0;
-    color: var(--text-color);
+    margin: 0 0 var(--spacing-unit) 0;
+    color: var(--text-color-light);
+    font-size: 1.25rem; /* Consistent with main.css */
+    font-weight: 600;
+    transition: color var(--transition-speed);
+}
+
+.dark-mode .modal-content h2 {
+    color: var(--text-color-dark);
 }
 
 .form-group {
-    margin-bottom: 16px;
+    margin-bottom: 1rem; /* Consistent with main.css */
 }
 
 .form-group label {
     display: block;
-    margin-bottom: 8px;
-    color: var(--text-color);
+    margin-bottom: 0.5rem;
+    color: var(--text-color-light);
+    font-weight: 500; /* Consistent with main.css */
+    transition: color var(--transition-speed);
+}
+
+.dark-mode .form-group label {
+    color: var(--text-color-dark);
 }
 
 .form-group input,
 .form-group select {
     width: 100%;
-    padding: 8px 12px;
-    border: 1px solid var(--border-color);
-    border-radius: 4px;
-    background: var(--input-bg);
-    color: var(--text-color);
+    padding: 0.375rem 0.75rem;
+    border: 1px solid var(--border-color-light);
+    border-radius: var(--border-radius);
+    background: var(--input-background-light);
+    color: var(--text-color-light);
+    font-size: 0.875rem; /* Consistent font size */
+    transition: border-color var(--transition-speed), box-shadow var(--transition-speed), background-color var(--transition-speed), color var(--transition-speed);
+}
+
+.dark-mode .form-group input,
+.dark-mode .form-group select {
+    background: var(--input-background-dark);
+    border-color: var(--border-color-dark);
+    color: var(--text-color-dark);
 }
 
 .form-group input:focus,
 .form-group select:focus {
     outline: none;
-    border-color: var(--primary-color);
-}
-
-.modal-buttons {
-    display: flex;
-    justify-content: flex-end;
-    gap: 12px;
-    margin-top: 24px;
-}
-
-/* Dark Mode Styles */
-.dark-mode .admin-card {
-    background: var(--dark-card-bg);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-}
-
-.dark-mode .modal-content {
-    background: var(--dark-card-bg);
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-}
-
-.dark-mode .form-group input,
-.dark-mode .form-group select {
-    background: var(--dark-input-bg);
-    border-color: var(--dark-border-color);
-    color: var(--dark-text-color);
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 3px rgba(9, 105, 218, 0.3);
 }
 
 .dark-mode .form-group input:focus,
 .dark-mode .form-group select:focus {
-    border-color: var(--primary-color);
+     box-shadow: 0 0 0 3px rgba(9, 105, 218, 0.5);
 }
 
+.modal-buttons {
+   display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+.modal-buttons button {
+    padding: 0.375rem 0.75rem;
+    border-radius: var(--border-radius);
+    font-size: 0.875rem; /* Make font size consistent */
+    font-weight: 500;
+    transition: all var(--transition-speed);
+     line-height: 1;
+}
 /* Responsive Styles */
 @media (max-width: 768px) {
     .admin-grid {
@@ -255,73 +323,98 @@
     }
 }
 
+
 .dark-mode-toggle {
     cursor: pointer;
-    padding: 8px;
-    border-radius: 4px;
-    transition: all 0.3s ease;
-    color: var(--text-color);
-    display: flex;
+    padding:  0.375rem 0.75rem;
+    border-radius: var(--border-radius);
+    transition: all var(--transition-speed);
+    color: var(--text-color-light);
+    display: inline-flex;
     align-items: center;
     justify-content: center;
+    border: 1px solid var(--border-color-light);
+    font-size: 0.875rem;
+    line-height: 1;
+
 }
 
 .dark-mode-toggle:hover {
-    background-color: var(--hover-color);
+     background-color: var(--table-row-hover-light);
+    color: var(--accent-color);
+    border-color: var(--border-color-light);
 }
 
 .dark-mode-toggle.active {
-    color: var(--primary-color);
+    color: var(--accent-color);
 }
 
+.dark-mode .dark-mode-toggle {
+     border-color: var(--border-color-dark);
+}
+
+.dark-mode .dark-mode-toggle:hover {
+     background-color: var(--table-row-hover-dark);
+    color: var(--accent-color);
+    border-color: var(--border-color-dark);
+}
+
+
 .dark-mode-toggle i {
-    font-size: 1.1em;
-    transition: transform 0.3s ease;
+    font-size: 1em; /* Adjust as needed */
+    transition: transform var(--transition-speed);
+
 }
 
 .logout-button {
-    background: none;
+     background: none;
     border: none;
-    color: var(--text-color);
+    color: var(--text-color-light);
     cursor: pointer;
-    padding: 8px 12px;
-    border-radius: 4px;
-    transition: all 0.3s ease;
-    display: flex;
+    padding: 0.375rem 0.75rem;
+    border-radius: var(--border-radius);
+    transition: all var(--transition-speed);
+    display: inline-flex;
     align-items: center;
-    gap: 8px;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    line-height: 1;
 }
 
 .logout-button:hover {
-    background-color: rgba(220, 53, 69, 0.1);
-    color: #dc3545;
+    background-color: var(--table-row-hover-light);
+    color: var(--accent-color)
+}
+
+.dark-mode .logout-button {
+    color: var(--text-color-dark);
 }
 
 .dark-mode .logout-button:hover {
-    color: #ffffff;
-    background-color: #dc3545;
+   background-color: var(--table-row-hover-dark);
+    color: var(--accent-color)
 }
 
 /* Navigation spacing */
 .navigation {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 0.5rem; /* Reduced gap */
 }
 
 .user-profile {
     margin-left: auto;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 0.5rem; /* Reduced gap */
 }
 
 .dark-mode-toggle {
-    margin-left: 8px;
+    margin-left: 0.5rem; /* Reduced margin */
 }
 
 .logout-button {
-    margin-left: 8px;
+    margin-left: 0.5rem; /* Reduced margin */
 }
 
 /* Navigation Dropdown Styles */
@@ -331,22 +424,32 @@
 }
 
 .nav-dropdown-btn {
-    background: none;
+  background: none;
     border: none;
-    color: var(--text-color);
+    color: var(--text-color-light);
     cursor: pointer;
-    padding: 8px 12px;
-    border-radius: 4px;
-    transition: all 0.3s ease;
-    display: flex;
+    padding: 0.375rem 0.75rem;
+    border-radius: var(--border-radius);
+    transition: all var(--transition-speed);
+    display: inline-flex;
     align-items: center;
-    gap: 8px;
-    font-size: 1em;
+    gap: 0.5rem;
+    font-size: 0.875rem;
     font-family: inherit;
+    line-height: 1;
+}
+.dark-mode .nav-dropdown-btn {
+   color: var(--text-color-dark)
 }
 
 .nav-dropdown-btn:hover {
-    background-color: var(--hover-color);
+    background-color: var(--table-row-hover-light);
+     color: var(--accent-color)
+}
+
+.dark-mode .nav-dropdown-btn:hover{
+      background-color: var(--table-row-hover-dark);
+     color: var(--accent-color)
 }
 
 .nav-dropdown-btn i:last-child {
@@ -363,13 +466,21 @@
     position: absolute;
     top: 100%;
     left: 0;
-    background: var(--card-bg);
+    background: var(--card-background-light);
     min-width: 200px;
-    border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
     z-index: 1000;
     padding: 8px 0;
     margin-top: 4px;
+     border: 1px solid var(--border-color-light);
+    transition: background-color var(--transition-speed), box-shadow var(--transition-speed), border-color var(--transition-speed);
+}
+
+.dark-mode .nav-dropdown-content {
+   background: var(--card-background-dark);
+    box-shadow: var(--shadow-color-dark);
+    border-color: var(--border-color-dark);
 }
 
 .nav-dropdown.active .nav-dropdown-content {
@@ -381,34 +492,27 @@
     align-items: center;
     gap: 8px;
     padding: 8px 16px;
-    color: var(--text-color);
+    color: var(--text-color-light);
     text-decoration: none;
-    transition: all 0.3s ease;
+    transition: all var(--transition-speed);
+}
+.dark-mode .nav-dropdown-item{
+    color: var(--text-color-dark)
 }
 
 .nav-dropdown-item:hover {
-    background-color: var(--hover-color);
-    color: var(--primary-color);
+    background-color: var(--table-row-hover-light);
+     color: var(--accent-color)
+}
+
+.dark-mode .nav-dropdown-item:hover{
+      background-color: var(--table-row-hover-dark);
+     color: var(--accent-color)
 }
 
 .nav-dropdown-item i {
     width: 16px;
     text-align: center;
-}
-
-/* Dark Mode Styles for Dropdown */
-.dark-mode .nav-dropdown-content {
-    background: var(--dark-card-bg);
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-}
-
-.dark-mode .nav-dropdown-item {
-    color: var(--dark-text-color);
-}
-
-.dark-mode .nav-dropdown-item:hover {
-    background-color: var(--dark-hover-color);
-    color: var(--primary-color);
 }
 
 /* Close dropdown when clicking outside */
@@ -424,4 +528,4 @@
 
 .nav-dropdown.active + .nav-dropdown-overlay {
     display: block;
-} 
+}

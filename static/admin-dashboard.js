@@ -299,3 +299,20 @@ function handleDropdownMenu() {
         });
     });
 } 
+
+function toggleDropdown(button) {
+    const dropdown = button.closest('.nav-dropdown');
+    dropdown.classList.toggle('active');
+}
+
+function closeAllDropdowns() {
+    const dropdowns = document.querySelectorAll('.nav-dropdown.active');
+    dropdowns.forEach(dropdown => dropdown.classList.remove('active'));
+}
+
+// Close dropdowns when clicking outside
+document.addEventListener('click', function (event) {
+    if (!event.target.closest('.nav-dropdown')) {
+        closeAllDropdowns();
+    }
+});
