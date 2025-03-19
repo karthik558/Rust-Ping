@@ -74,12 +74,19 @@ function handleLogin(event) {
             role: user.role
         }));
 
-        // Redirect based on role
-        if (user.role === 'admin') {
-            window.location.href = 'admin-dashboard.html';
-        } else {
-            window.location.href = 'index.html';
-        }
+        // Show welcome overlay for 2 seconds before redirecting
+        const welcomeOverlay = document.getElementById('welcomeOverlay');
+        welcomeOverlay.classList.add('show');
+        
+        setTimeout(() => {
+            welcomeOverlay.classList.remove('show');
+            // Redirect based on role
+            if (user.role === 'admin') {
+                window.location.href = 'admin-dashboard.html';
+            } else {
+                window.location.href = 'index.html';
+            }
+        }, 2000);
     });
 }
 
