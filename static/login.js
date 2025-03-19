@@ -42,7 +42,8 @@ function initializeDefaultAdmin() {
 }
 
 // Login attempt tracking
-const MAX_LOGIN_ATTEMPTS = 5;
+const ADMIN_MAX_LOGIN_ATTEMPTS = 10;
+const USER_MAX_LOGIN_ATTEMPTS = 3;
 const LOCKOUT_DURATION = 15 * 60 * 1000; // 15 minutes in milliseconds
 
 function getLoginAttempts(username) {
@@ -68,7 +69,11 @@ function updateLoginAttempts(username, reset = false) {
 
 function isAccountLocked(username) {
     const attempts = getLoginAttempts(username);
-    if (attempts.count >= MAX_LOGIN_ATTEMPTS) {
+    const users = JSON.parse(localStorage.getItem('users') || '[]');
+    const user = users.find(u => u.username === username);
+    const maxAttempts = user?.role === 'admin' ? ADMIN_MAX_LOGIN_ATTEMPTS : USER_MAX_LOGIN_ATTEMPTS;
+
+    if (attempts.count >= maxAttempts) {
         const timeDiff = new Date().getTime() - attempts.timestamp;
         if (timeDiff < LOCKOUT_DURATION) {
             const remainingTime = Math.ceil((LOCKOUT_DURATION - timeDiff) / 60000);
@@ -79,6 +84,37 @@ function isAccountLocked(username) {
         }
     }
     return false;
+}
+
+// Function to unlock a user account
+function unlockUserAccount(username) {
+    updateLoginAttempts(username, true);
+}
+
+// Function to get all locked users
+function getLockedUsers() {
+    const attempts = JSON.parse(localStorage.getItem('loginAttempts') || '{}');
+    const users = JSON.parse(localStorage.getItem('users') || '[]');
+    const currentTime = new Date().getTime();
+    
+    return Object.entries(attempts).map(([username, data]) => {
+        const user = users.find(u => u.username === username);
+        const maxAttempts = user?.role === 'admin' ? ADMIN_MAX_LOGIN_ATTEMPTS : USER_MAX_LOGIN_ATTEMPTS;
+        const timeDiff = currentTime - data.timestamp;
+        const isLocked = data.count >= maxAttempts && timeDiff < LOCKOUT_DURATION;
+        
+        if (isLocked) {
+            const remainingTime = Math.ceil((LOCKOUT_DURATION - timeDiff) / 60000);
+            return {
+                username,
+                role: user?.role || 'user',
+                attempts: data.count,
+                remainingTime,
+                lockedAt: new Date(data.timestamp).toLocaleString()
+            };
+        }
+        return null;
+    }).filter(Boolean);
 }
 
 // Handle login form submission
@@ -261,6 +297,22 @@ function calculatePasswordStrength(password) {
     
     // Normalize to 4 levels
     return Math.min(4, Math.floor(strength * 1.5));
+}
+
+// Toggle password visibility
+function togglePasswordVisibility() {
+    const passwordInput = document.getElementById('password');
+    const toggleIcon = document.querySelector('.password-toggle i');
+    
+    if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+        toggleIcon.classList.remove('fa-eye');
+        toggleIcon.classList.add('fa-eye-slash');
+    } else {
+        passwordInput.type = 'password';
+        toggleIcon.classList.remove('fa-eye-slash');
+        toggleIcon.classList.add('fa-eye');
+    }
 }
 
 // Initialize on page load
