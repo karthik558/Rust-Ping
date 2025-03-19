@@ -67,6 +67,30 @@
                     </div>
                 </div>
             </div>
+
+            <div class="dashboard-section">
+                <h2>Locked User Accounts</h2>
+                <div class="locked-users-container">
+                    <table class="locked-users-table">
+                        <thead>
+                            <tr>
+                                <th>Username</th>
+                                <th>Role</th>
+                                <th>Failed Attempts</th>
+                                <th>Locked Since</th>
+                                <th>Remaining Time</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="lockedUsersTableBody">
+                            <!-- Locked users will be populated here -->
+                        </tbody>
+                    </table>
+                    <div id="noLockedUsers" class="no-data-message">
+                        No locked user accounts found.
+                    </div>
+                </div>
+            </div>
         </main>
 
         <footer class="footer">
@@ -104,5 +128,6 @@
 
     <script src="script.js"></script>
     <script src="admin-dashboard.js"></script>
+    <script src="login.js"></script>
 </body>
 </html> 

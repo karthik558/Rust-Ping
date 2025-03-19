@@ -15,6 +15,8 @@ document.addEventListener('DOMContentLoaded', () => {
     loadUsers();
     updateUserProfile();
     handleDropdownMenu();
+    updateLockedUsersTable();
+    setInterval(updateLockedUsersTable, 30000);
 });
 
 // Setup event listeners
@@ -316,3 +318,113 @@ document.addEventListener('click', function (event) {
         closeAllDropdowns();
     }
 });
+
+// Function to update the locked users table
+function updateLockedUsersTable() {
+    console.log('Updating locked users table...');
+    const lockedUsers = getLockedUsers();
+    console.log('Locked users:', lockedUsers);
+    
+    const tableBody = document.getElementById('lockedUsersTableBody');
+    const noLockedUsers = document.getElementById('noLockedUsers');
+
+    if (!tableBody || !noLockedUsers) {
+        console.error('Required elements not found:', {
+            tableBody: !!tableBody,
+            noLockedUsers: !!noLockedUsers
+        });
+        return;
+    }
+
+    if (lockedUsers.length === 0) {
+        console.log('No locked users found');
+        tableBody.innerHTML = '';
+        noLockedUsers.style.display = 'block';
+        return;
+    }
+
+    console.log('Displaying locked users in table');
+    noLockedUsers.style.display = 'none';
+    tableBody.innerHTML = lockedUsers.map(user => `
+        <tr>
+            <td>${user.username}</td>
+            <td><span class="role-badge ${user.role}">${user.role}</span></td>
+            <td>${user.attempts}</td>
+            <td>${user.lockedAt}</td>
+            <td>${user.remainingTime} minutes</td>
+            <td>
+                <button onclick="unlockUser('${user.username}')" class="button unlock-button">
+                    <i class="fas fa-unlock"></i> Unlock
+                </button>
+            </td>
+        </tr>
+    `).join('');
+}
+
+// Function to unlock a user
+function unlockUser(username) {
+    console.log('Unlocking user:', username);
+    unlockUserAccount(username);
+    showNotification(`Account unlocked: ${username}`, 'success');
+    updateLockedUsersTable();
+}
+
+// Show notification
+function showNotification(message, type = 'info') {
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+    notification.textContent = message;
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.remove();
+    }, 3000);
+}
+
+// Function to get all locked users
+function getLockedUsers() {
+    console.log('Getting locked users...');
+    const attempts = JSON.parse(localStorage.getItem('loginAttempts') || '{}');
+    const users = JSON.parse(localStorage.getItem('users') || '[]');
+    const currentTime = new Date().getTime();
+    
+    console.log('Login attempts data:', attempts);
+    
+    const lockedUsers = Object.entries(attempts).map(([username, data]) => {
+        const user = users.find(u => u.username === username);
+        const maxAttempts = user?.role === 'admin' ? 10 : 3;
+        const timeDiff = currentTime - data.timestamp;
+        const isLocked = data.count >= maxAttempts && timeDiff < (15 * 60 * 1000); // 15 minutes
+        
+        console.log(`Checking user ${username}:`, {
+            attempts: data.count,
+            maxAttempts,
+            timeDiff,
+            isLocked
+        });
+        
+        if (isLocked) {
+            const remainingTime = Math.ceil((15 * 60 * 1000 - timeDiff) / 60000);
+            return {
+                username,
+                role: user?.role || 'user',
+                attempts: data.count,
+                remainingTime,
+                lockedAt: new Date(data.timestamp).toLocaleString()
+            };
+        }
+        return null;
+    }).filter(Boolean);
+    
+    console.log('Found locked users:', lockedUsers);
+    return lockedUsers;
+}
+
+// Function to unlock a user account
+function unlockUserAccount(username) {
+    console.log('Unlocking account for:', username);
+    const attempts = JSON.parse(localStorage.getItem('loginAttempts') || '{}');
+    delete attempts[username];
+    localStorage.setItem('loginAttempts', JSON.stringify(attempts));
+    console.log('Updated login attempts:', attempts);
+}

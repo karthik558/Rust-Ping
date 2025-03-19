@@ -527,3 +527,130 @@
 .nav-dropdown.active + .nav-dropdown-overlay {
     display: block;
 }
+
+/* --- Locked Users Table --- */
+.locked-users-container {
+    background: var(--card-background-light);
+    border: 1px solid var(--border-color-light);
+    border-radius: var(--border-radius);
+    padding: 1rem;
+    margin-top: 1rem;
+}
+
+.dark-mode .locked-users-container {
+    background: var(--card-background-dark);
+    border-color: var(--border-color-dark);
+}
+
+.locked-users-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+}
+
+.locked-users-table th,
+.locked-users-table td {
+    padding: 0.75rem;
+    text-align: left;
+    border-bottom: 1px solid var(--border-color-light);
+}
+
+.dark-mode .locked-users-table th,
+.dark-mode .locked-users-table td {
+    border-color: var(--border-color-dark);
+}
+
+.locked-users-table th {
+    font-weight: 600;
+    color: var(--text-color-light);
+    background: var(--background-color-light);
+}
+
+.dark-mode .locked-users-table th {
+    color: var(--text-color-dark);
+    background: var(--background-color-dark);
+}
+
+.unlock-button {
+    background-color: var(--success-color);
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: background-color 0.2s;
+}
+
+.unlock-button:hover {
+    background-color: #2c974b;
+}
+
+.unlock-button i {
+    font-size: 0.9rem;
+}
+
+.role-badge {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.role-badge.admin {
+    background-color: #0969da;
+    color: white;
+}
+
+.role-badge.user {
+    background-color: #6e7781;
+    color: white;
+}
+
+.no-data-message {
+    text-align: center;
+    padding: 2rem;
+    color: var(--text-color-light);
+    font-style: italic;
+}
+
+.dark-mode .no-data-message {
+    color: var(--text-color-dark);
+}
+
+/* --- Notification --- */
+.notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 1rem;
+    border-radius: var(--border-radius);
+    background: white;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    z-index: 1000;
+    animation: slideIn 0.3s ease-out;
+}
+
+.notification.success {
+    background-color: #2da44e;
+    color: white;
+}
+
+.notification.error {
+    background-color: var(--error-color);
+    color: white;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
