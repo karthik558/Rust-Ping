@@ -194,7 +194,7 @@
 
 /* Modal Styles */
 .modal {
-    display: none; /* Hidden by default */
+    display: none;
     position: fixed;
     top: 0;
     left: 0;
@@ -202,16 +202,16 @@
     height: 100%;
     background-color: rgba(0, 0, 0, 0.5);
     z-index: 1000;
-    justify-content: center; /* Center horizontally */
-    align-items: center; /* Center vertically */
+    justify-content: center;
+    align-items: center;
 }
 
 .modal.active {
-     display: flex !important;
+    display: flex !important;
 }
 
 .modal-content {
-  background: var(--card-background-light);
+    background: var(--card-background-light);
     border-radius: var(--border-radius);
     padding: var(--spacing-unit);
     width: 100%;
@@ -227,27 +227,63 @@
     border-color: var(--border-color-dark);
 }
 
-.modal-content h2 {
-    margin: 0 0 var(--spacing-unit) 0;
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-unit);
+}
+
+.modal-header h2 {
+    margin: 0;
     color: var(--text-color-light);
-    font-size: 1.25rem; /* Consistent with main.css */
+    font-size: 1.25rem;
     font-weight: 600;
     transition: color var(--transition-speed);
 }
 
-.dark-mode .modal-content h2 {
+.dark-mode .modal-header h2 {
     color: var(--text-color-dark);
 }
 
+.close-btn {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: var(--text-color-light);
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: all var(--transition-speed);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.close-btn:hover {
+    background-color: var(--hover-color-light);
+    color: var(--accent-color);
+    transform: scale(1.1);
+}
+
+.dark-mode .close-btn {
+    color: var(--text-color-dark);
+}
+
+.dark-mode .close-btn:hover {
+    background-color: var(--hover-color-dark);
+    color: var(--accent-color);
+}
+
 .form-group {
-    margin-bottom: 1rem; /* Consistent with main.css */
+    margin-bottom: 1rem;
 }
 
 .form-group label {
     display: block;
     margin-bottom: 0.5rem;
     color: var(--text-color-light);
-    font-weight: 500; /* Consistent with main.css */
+    font-weight: 500;
     transition: color var(--transition-speed);
 }
 
@@ -263,7 +299,7 @@
     border-radius: var(--border-radius);
     background: var(--input-background-light);
     color: var(--text-color-light);
-    font-size: 0.875rem; /* Consistent font size */
+    font-size: 0.875rem;
     transition: border-color var(--transition-speed), box-shadow var(--transition-speed), background-color var(--transition-speed), color var(--transition-speed);
 }
 
@@ -283,23 +319,105 @@
 
 .dark-mode .form-group input:focus,
 .dark-mode .form-group select:focus {
-     box-shadow: 0 0 0 3px rgba(9, 105, 218, 0.5);
+    box-shadow: 0 0 0 3px rgba(9, 105, 218, 0.5);
 }
 
-.modal-buttons {
-   display: flex;
+.password-input {
+    position: relative;
+}
+
+.password-toggle {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: var(--text-color-light);
+    cursor: pointer;
+    transition: color var(--transition-speed);
+}
+
+.dark-mode .password-toggle {
+    color: var(--text-color-dark);
+}
+
+.password-strength {
+    margin-top: 8px;
+    height: 4px;
+    background-color: var(--border-color-light);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.dark-mode .password-strength {
+    background-color: var(--border-color-dark);
+}
+
+.meter-bar {
+    height: 100%;
+    width: 0;
+    transition: width 0.3s ease;
+}
+
+.meter-bar.weak { width: 25%; background-color: #ff4444; }
+.meter-bar.fair { width: 50%; background-color: #ffbb33; }
+.meter-bar.good { width: 75%; background-color: #00C851; }
+.meter-bar.strong { width: 100%; background-color: #007E33; }
+
+.form-actions {
+    display: flex;
     justify-content: flex-end;
-    gap: 1rem;
     margin-top: 1.5rem;
 }
-.modal-buttons button {
+
+.primary-button {
+    background-color: var(--accent-color);
+    color: white;
+    border: none;
     padding: 0.375rem 0.75rem;
     border-radius: var(--border-radius);
-    font-size: 0.875rem; /* Make font size consistent */
+    cursor: pointer;
+    font-size: 0.875rem;
     font-weight: 500;
-    transition: all var(--transition-speed);
-     line-height: 1;
+    transition: background-color var(--transition-speed);
 }
+
+.primary-button:hover {
+    opacity: 0.9;
+}
+
+/* Message styles */
+.message {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 12px 24px;
+    border-radius: var(--border-radius);
+    color: white;
+    z-index: 1000;
+    animation: slideIn 0.3s ease;
+}
+
+.message.success {
+    background-color: #4CAF50;
+}
+
+.message.error {
+    background-color: #f44336;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
 /* Responsive Styles */
 @media (max-width: 768px) {
     .admin-grid {

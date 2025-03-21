@@ -43,13 +43,14 @@ function setupEventListeners() {
     if (addUserBtn) {
         addUserBtn.addEventListener('click', () => {
             addUserModal.classList.add('active');
+            // Add event listener for ESC key when modal opens
+            document.addEventListener('keydown', handleEscKey);
         });
     }
 
     if (cancelBtn) {
         cancelBtn.addEventListener('click', () => {
-            addUserModal.classList.remove('active');
-            addUserForm.reset();
+            closeAddUserModal();
         });
     }
 
@@ -60,13 +61,57 @@ function setupEventListeners() {
         });
     }
 
+    // Password visibility toggle
+    const passwordToggle = document.querySelector('.password-toggle');
+    const passwordInput = document.getElementById('newPassword');
+    if (passwordToggle && passwordInput) {
+        passwordToggle.addEventListener('click', () => {
+            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
+            passwordToggle.querySelector('i').classList.toggle('fa-eye');
+            passwordToggle.querySelector('i').classList.toggle('fa-eye-slash');
+        });
+    }
+
+    // Password strength meter
+    if (passwordInput) {
+        passwordInput.addEventListener('input', () => {
+            updatePasswordStrength(passwordInput.value);
+        });
+    }
+
     // Close modal when clicking outside
     window.addEventListener('click', (e) => {
         if (e.target === addUserModal) {
-            addUserModal.classList.remove('active');
-            addUserForm.reset();
+            closeAddUserModal();
         }
     });
+}
+
+// Function to handle ESC key
+function handleEscKey(event) {
+    if (event.key === 'Escape') {
+        closeAddUserModal();
+    }
+}
+
+// Function to close add user modal
+function closeAddUserModal() {
+    const addUserModal = document.getElementById('addUserModal');
+    const addUserForm = document.getElementById('addUserForm');
+    
+    addUserModal.classList.remove('active');
+    addUserForm.reset();
+    
+    // Remove ESC key event listener
+    document.removeEventListener('keydown', handleEscKey);
+    
+    // Reset password strength meter
+    const meterBar = document.querySelector('.meter-bar');
+    if (meterBar) {
+        meterBar.style.width = '0';
+        meterBar.className = 'meter-bar';
+    }
 }
 
 // Setup dark mode
@@ -192,7 +237,7 @@ async function handleAddUser(event) {
     const password = document.getElementById('newPassword').value;
     const role = document.getElementById('newUserRole').value;
     
-    // Validate password strength
+    // Validate password
     if (!validatePassword(password)) {
         showMessage('Password must be at least 8 characters long and contain uppercase, lowercase, numbers, and special characters.', 'error');
         return;
@@ -269,10 +314,13 @@ function showMessage(message, type = 'info') {
 
 // Validate password
 function validatePassword(password) {
-    return password.length >= 8 &&
-           /[A-Z]/.test(password) &&
-           /[a-z]/.test(password) &&
-           /[0-9]/.test(password);
+    return (
+        password.length >= 8 &&
+        /[A-Z]/.test(password) &&
+        /[a-z]/.test(password) &&
+        /[0-9]/.test(password) &&
+        /[^A-Za-z0-9]/.test(password)
+    );
 }
 
 // Hash password
@@ -860,5 +908,37 @@ function updateGraphs() {
         charts.loginRate.data.datasets[0].data = getLoginSuccessData();
         charts.loginRate.data.datasets[1].data = getLoginFailureData();
         charts.loginRate.update();
+    }
+}
+
+// Update password strength meter
+function updatePasswordStrength(password) {
+    const meterBar = document.querySelector('.meter-bar');
+    if (!meterBar) return;
+
+    let strength = 0;
+    const checks = {
+        length: password.length >= 8,
+        uppercase: /[A-Z]/.test(password),
+        lowercase: /[a-z]/.test(password),
+        number: /[0-9]/.test(password),
+        special: /[^A-Za-z0-9]/.test(password)
+    };
+
+    // Calculate strength based on criteria
+    strength = Object.values(checks).filter(Boolean).length * 20;
+
+    // Update meter bar
+    meterBar.style.width = `${strength}%`;
+    meterBar.className = 'meter-bar';
+    
+    if (strength <= 20) {
+        meterBar.classList.add('weak');
+    } else if (strength <= 40) {
+        meterBar.classList.add('fair');
+    } else if (strength <= 60) {
+        meterBar.classList.add('good');
+    } else {
+        meterBar.classList.add('strong');
     }
 }
