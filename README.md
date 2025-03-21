@@ -149,7 +149,7 @@ These features are planned for future development:
 ## 🔑 Default Password for WebUI
 
 *   **Username:** `admin`
-*   **Password:** `admin@123`
+*   **Password:** `admin`
 
 **Important:** Change the default password immediately after your first login for security reasons!
 
