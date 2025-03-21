@@ -28,16 +28,42 @@ function setupInactivityDetection() {
 }
 
 // Initialize default admin if no users exist
-function initializeDefaultAdmin() {
-    const users = JSON.parse(localStorage.getItem('users') || '[]');
-    if (users.length === 0) {
-        const defaultAdmin = {
-            username: 'admin',
-            passwordHash: '8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918', // admin
-            role: 'admin'
-        };
-        users.push(defaultAdmin);
-        localStorage.setItem('users', JSON.stringify(users));
+async function initializeDefaultAdmin() {
+    try {
+        // Get users from localStorage
+        let users = JSON.parse(localStorage.getItem('users') || '[]');
+        
+        // If localStorage is empty, try to get users from AUTH_CONFIG
+        if (users.length === 0) {
+            if (typeof AUTH_CONFIG !== 'undefined') {
+                users = AUTH_CONFIG.users || [];
+                // Save to localStorage
+                localStorage.setItem('users', JSON.stringify(users));
+            } else {
+                // If AUTH_CONFIG is not available, create default admin
+                const defaultAdmin = {
+                    username: 'admin',
+                    passwordHash: '8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918', // admin
+                    role: 'admin'
+                };
+                users = [defaultAdmin];
+                localStorage.setItem('users', JSON.stringify(users));
+                
+                // Update config.js with default admin
+                const configContent = `const AUTH_CONFIG = ${JSON.stringify({ users }, null, 4)};`;
+                await fetch('/update-config', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        content: configContent
+                    })
+                });
+            }
+        }
+    } catch (error) {
+        console.error('Error initializing users:', error);
     }
 }
 
@@ -118,7 +144,7 @@ function getLockedUsers() {
 }
 
 // Handle login form submission
-function handleLogin(event) {
+async function handleLogin(event) {
     event.preventDefault();
     const username = document.getElementById('username').value;
     const password = document.getElementById('password').value;
@@ -134,72 +160,91 @@ function handleLogin(event) {
     if (lockStatus) {
         errorMessageDiv.style.display = 'block';
         errorMessageDiv.textContent = lockStatus;
+        loginButton.classList.remove('loading');
         return;
     }
 
     // Show loading state
     loginButton.classList.add('loading');
 
-    // Get users from localStorage
-    const users = JSON.parse(localStorage.getItem('users') || '[]');
-    
-    // Find user
-    const user = users.find(u => u.username === username);
-    
-    if (!user) {
-        updateLoginAttempts(username);
-        errorMessageDiv.style.display = 'block';
-        errorMessageDiv.textContent = 'Invalid username or password';
-        loginButton.classList.remove('loading');
-        return;
-    }
+    try {
+        // Hash the password
+        const hashedPassword = await hashPassword(password);
+        
+        // Get users from localStorage
+        let users = JSON.parse(localStorage.getItem('users') || '[]');
+        
+        // If localStorage is empty, try to get users from AUTH_CONFIG
+        if (users.length === 0 && typeof AUTH_CONFIG !== 'undefined') {
+            users = AUTH_CONFIG.users || [];
+            localStorage.setItem('users', JSON.stringify(users));
+        }
 
-    // Hash the provided password
-    hashPassword(password).then(hashedPassword => {
-        if (hashedPassword !== user.passwordHash) {
-            updateLoginAttempts(username);
+        // Find user
+        const user = users.find(u => u.username === username && u.passwordHash === hashedPassword);
+        
+        if (user) {
+            // Set auth cookie
+            document.cookie = "auth=true; path=/";
+            
+            // Store current user in localStorage
+            localStorage.setItem('currentUser', JSON.stringify({
+                username: user.username,
+                role: user.role,
+                lastLogin: new Date().toISOString()
+            }));
+
+            // Reset login attempts
+            const attempts = JSON.parse(localStorage.getItem('loginAttempts') || '{}');
+            delete attempts[username];
+            localStorage.setItem('loginAttempts', JSON.stringify(attempts));
+
+            // Show welcome overlay for 2 seconds before redirecting
+            const welcomeOverlay = document.getElementById('welcomeOverlay');
+            if (welcomeOverlay) {
+                welcomeOverlay.classList.add('show');
+                
+                setTimeout(() => {
+                    welcomeOverlay.classList.remove('show');
+                    loginButton.classList.remove('loading');
+                    
+                    // Redirect based on role
+                    if (user.role === 'admin') {
+                        window.location.href = '/static/admin-dashboard.html';
+                    } else {
+                        window.location.href = '/static/index.html';
+                    }
+                }, 2000);
+            }
+        } else {
+            // Handle failed login attempt
+            const attempts = JSON.parse(localStorage.getItem('loginAttempts') || '{}');
+            attempts[username] = {
+                count: (attempts[username]?.count || 0) + 1,
+                timestamp: Date.now()
+            };
+            localStorage.setItem('loginAttempts', JSON.stringify(attempts));
+
+            // Check if account should be locked
+            const userConfig = users.find(u => u.username === username);
+            const maxAttempts = userConfig?.role === 'admin' ? 10 : 3;
+            if (attempts[username].count >= maxAttempts) {
+                errorMessageDiv.style.display = 'block';
+                errorMessageDiv.textContent = `Account locked. Please try again in ${LOCKOUT_DURATION / 60000} minutes.`;
+                loginButton.classList.remove('loading');
+                return;
+            }
+
             errorMessageDiv.style.display = 'block';
             errorMessageDiv.textContent = 'Invalid username or password';
             loginButton.classList.remove('loading');
-            return;
         }
-
-        // Reset login attempts on successful login
-        updateLoginAttempts(username, true);
-
-        // Handle "Remember me" functionality
-        const rememberMe = document.getElementById('rememberMe').checked;
-        if (rememberMe) {
-            // Set a longer expiration for the auth cookie (30 days)
-            const expirationDate = new Date();
-            expirationDate.setDate(expirationDate.getDate() + 30);
-            document.cookie = `auth=true; path=/; expires=${expirationDate.toUTCString()}`;
-        } else {
-            document.cookie = "auth=true; path=/";
-        }
-        
-        // Store current user info
-        localStorage.setItem('currentUser', JSON.stringify({
-            username: user.username,
-            role: user.role,
-            lastLogin: new Date().toISOString()
-        }));
-
-        // Show welcome overlay for 2 seconds before redirecting
-        const welcomeOverlay = document.getElementById('welcomeOverlay');
-        welcomeOverlay.classList.add('show');
-        
-        setTimeout(() => {
-            welcomeOverlay.classList.remove('show');
-            loginButton.classList.remove('loading');
-            // Redirect based on role
-            if (user.role === 'admin') {
-                window.location.href = 'admin-dashboard.html';
-            } else {
-                window.location.href = 'index.html';
-            }
-        }, 2000);
-    });
+    } catch (error) {
+        console.error('Login error:', error);
+        errorMessageDiv.style.display = 'block';
+        errorMessageDiv.textContent = 'An error occurred during login';
+        loginButton.classList.remove('loading');
+    }
 }
 
 function logout() {

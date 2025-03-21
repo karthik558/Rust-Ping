@@ -12,6 +12,13 @@ document.addEventListener('DOMContentLoaded', () => {
     checkAdminAccess();
     setupDarkMode();
     setupEventListeners();
+    
+    // Initialize users from config.js if localStorage is empty
+    const users = JSON.parse(localStorage.getItem('users') || '[]');
+    if (users.length === 0 && typeof AUTH_CONFIG !== 'undefined') {
+        localStorage.setItem('users', JSON.stringify(AUTH_CONFIG.users || []));
+    }
+    
     loadUsers();
     updateUserProfile();
     handleDropdownMenu();
@@ -47,7 +54,10 @@ function setupEventListeners() {
     }
 
     if (addUserForm) {
-        addUserForm.addEventListener('submit', handleAddUser);
+        addUserForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            await handleAddUser(event);
+        });
     }
 
     // Close modal when clicking outside
@@ -133,7 +143,13 @@ function loadUsers() {
     const userList = document.getElementById('userList');
     if (!userList) return;
 
-    const users = JSON.parse(localStorage.getItem('users') || '[]');
+    // Get users from localStorage or initialize from AUTH_CONFIG
+    let users = JSON.parse(localStorage.getItem('users') || '[]');
+    if (users.length === 0 && typeof AUTH_CONFIG !== 'undefined') {
+        users = AUTH_CONFIG.users || [];
+        localStorage.setItem('users', JSON.stringify(users));
+    }
+
     userList.innerHTML = users.map(user => createUserElement(user)).join('');
 }
 
@@ -171,45 +187,84 @@ function createUserElement(user) {
 // Handle add user
 async function handleAddUser(event) {
     event.preventDefault();
-    const username = document.getElementById('username').value;
-    const password = document.getElementById('password').value;
-    const role = document.getElementById('role').value;
-
-    // Validate password
+    
+    const username = document.getElementById('newUsername').value;
+    const password = document.getElementById('newPassword').value;
+    const role = document.getElementById('newUserRole').value;
+    
+    // Validate password strength
     if (!validatePassword(password)) {
-        alert('Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, and one number.');
+        showMessage('Password must be at least 8 characters long and contain uppercase, lowercase, numbers, and special characters.', 'error');
         return;
     }
 
-    // Hash password
-    const passwordHash = await hashPassword(password);
+    try {
+        // Hash the password
+        const hashedPassword = await hashPassword(password);
+        
+        // Get current users from localStorage
+        let users = JSON.parse(localStorage.getItem('users') || '[]');
+        
+        // Check if username already exists
+        if (users.some(user => user.username === username)) {
+            showMessage('Username already exists', 'error');
+            return;
+        }
 
-    // Get existing users
-    const users = JSON.parse(localStorage.getItem('users') || '[]');
+        // Add new user
+        const newUser = {
+            username,
+            passwordHash: hashedPassword,
+            role
+        };
+        
+        users.push(newUser);
+        
+        // Update localStorage
+        localStorage.setItem('users', JSON.stringify(users));
+        
+        // Update config.js
+        const configContent = `const AUTH_CONFIG = ${JSON.stringify({ users }, null, 4)};`;
+        const response = await fetch('/update-config', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                content: configContent
+            })
+        });
 
-    // Check if username already exists
-    if (users.some(user => user.username === username)) {
-        alert('Username already exists');
-        return;
+        if (!response.ok) {
+            throw new Error('Failed to update config.js');
+        }
+
+        // Clear form and close modal
+        document.getElementById('newUsername').value = '';
+        document.getElementById('newPassword').value = '';
+        document.getElementById('newUserRole').value = 'user';
+        document.getElementById('addUserModal').classList.remove('active');
+        
+        // Reload users list
+        loadUsers();
+        
+        showMessage('User added successfully', 'success');
+    } catch (error) {
+        console.error('Error adding user:', error);
+        showMessage('Failed to add user', 'error');
     }
+}
 
-    // Add new user
-    users.push({
-        username,
-        passwordHash,
-        role
-    });
-
-    // Save to localStorage
-    localStorage.setItem('users', JSON.stringify(users));
-
-    // Reload user list
-    loadUsers();
-
-    // Close modal and reset form
-    const modal = document.getElementById('addUserModal');
-    modal.classList.remove('active');
-    event.target.reset();
+// Show message function
+function showMessage(message, type = 'info') {
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `message ${type}`;
+    messageDiv.textContent = message;
+    document.body.appendChild(messageDiv);
+    
+    setTimeout(() => {
+        messageDiv.remove();
+    }, 3000);
 }
 
 // Validate password
@@ -236,21 +291,84 @@ function editUser(username) {
 }
 
 // Reset user password
-function resetUserPassword(username) {
-    // TODO: Implement reset password functionality
-    alert('Reset password functionality coming soon!');
-}
+async function resetUserPassword(username) {
+    const newPassword = prompt('Enter new password for ' + username + ':');
+    if (!newPassword) return;
 
-// Delete user
-function deleteUser(username) {
-    if (!confirm(`Are you sure you want to delete user "${username}"?`)) {
+    if (!validatePassword(newPassword)) {
+        alert('Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, and one number.');
         return;
     }
 
-    const users = JSON.parse(localStorage.getItem('users') || '[]');
-    const updatedUsers = users.filter(user => user.username !== username);
-    localStorage.setItem('users', JSON.stringify(updatedUsers));
-    loadUsers();
+    try {
+        const hashedPassword = await hashPassword(newPassword);
+        const users = JSON.parse(localStorage.getItem('users') || '[]');
+        
+        const userIndex = users.findIndex(u => u.username === username);
+        if (userIndex === -1) {
+            throw new Error('User not found');
+        }
+        
+        users[userIndex].passwordHash = hashedPassword;
+        
+        // Update localStorage
+        localStorage.setItem('users', JSON.stringify(users));
+        
+        // Update config.js
+        const configContent = `const AUTH_CONFIG = ${JSON.stringify({ users }, null, 4)};`;
+        await fetch('/update-config', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                content: configContent
+            })
+        });
+        
+        showNotification('Password reset successfully', 'success');
+    } catch (error) {
+        console.error('Error resetting password:', error);
+        showNotification('Failed to reset password: ' + error.message, 'error');
+    }
+}
+
+// Delete user
+async function deleteUser(username) {
+    try {
+        // Get current users from localStorage
+        let users = JSON.parse(localStorage.getItem('users') || '[]');
+        
+        // Remove user
+        users = users.filter(user => user.username !== username);
+        
+        // Update localStorage
+        localStorage.setItem('users', JSON.stringify(users));
+        
+        // Update config.js
+        const configContent = `const AUTH_CONFIG = ${JSON.stringify({ users }, null, 4)};`;
+        const response = await fetch('/update-config', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                content: configContent
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to update config.js');
+        }
+        
+        // Reload users list
+        loadUsers();
+        
+        showMessage('User deleted successfully', 'success');
+    } catch (error) {
+        console.error('Error deleting user:', error);
+        showMessage('Failed to delete user', 'error');
+    }
 }
 
 // Update user profile

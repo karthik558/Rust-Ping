@@ -1,4 +1,9 @@
 const AUTH_CONFIG = {
-    username: 'admin',
-    passwordHash: '7676aaafb027c825bd9abab78b234070e702752f625b752e55e55b48e607e358'
+    "users": [
+        {
+            "username": "admin",
+            "passwordHash": "8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918",
+            "role": "admin"
+        }
+    ]
 };

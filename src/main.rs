@@ -29,6 +29,27 @@ use rocket::outcome::Outcome;
 use serde::Deserialize;
 use rocket::serde::Serialize;
 use email::EmailService;
+use std::sync::atomic::{AtomicPtr, Ordering};
+use serde_json::Value;
+use rocket::http::ContentType;
+
+static AUTH_CONFIG: AtomicPtr<serde_json::Value> = AtomicPtr::new(std::ptr::null_mut());
+
+fn init_auth_config() {
+    if let Ok(content) = fs::read_to_string("static/config.js") {
+        if let Some(config_str) = content.strip_prefix("const AUTH_CONFIG = ") {
+            if let Ok(config) = serde_json::from_str::<serde_json::Value>(config_str) {
+                let config_ptr = Box::into_raw(Box::new(config));
+                let old_ptr = AUTH_CONFIG.swap(config_ptr, Ordering::SeqCst);
+                if !old_ptr.is_null() {
+                    unsafe {
+                        drop(Box::from_raw(old_ptr));
+                    }
+                }
+            }
+        }
+    }
+}
 
 async fn process_logs(start_date_parsed: Option<NaiveDate>, end_date_parsed: Option<NaiveDate>) -> Vec<String> {
     let mut filtered_logs = Vec::new();
@@ -744,8 +765,44 @@ async fn email_config_page(_auth: Auth) -> Option<NamedFile> {
     NamedFile::open(Path::new("static/email_config.html")).await.ok()
 }
 
+#[post("/update-config", data = "<data>")]
+async fn update_config(data: Json<serde_json::Value>) -> Status {
+    if let Some(content) = data.get("content").and_then(|c| c.as_str()) {
+        let config_path = Path::new("static/config.js");
+        match fs::write(config_path, content) {
+            Ok(_) => {
+                // Also update the in-memory AUTH_CONFIG
+                if let Ok(config_content) = content.parse::<String>() {
+                    if let Some(config_str) = config_content.strip_prefix("const AUTH_CONFIG = ") {
+                        if let Ok(config) = serde_json::from_str::<Value>(config_str) {
+                            // Update the global AUTH_CONFIG
+                            let new_config = Box::new(config);
+                            let old_ptr = AUTH_CONFIG.swap(Box::into_raw(new_config), Ordering::SeqCst);
+                            if !old_ptr.is_null() {
+                                unsafe {
+                                    drop(Box::from_raw(old_ptr));
+                                }
+                            }
+                        }
+                    }
+                }
+                Status::Ok
+            }
+            Err(e) => {
+                eprintln!("Error updating config file: {}", e);
+                Status::InternalServerError
+            }
+        }
+    } else {
+        Status::BadRequest
+    }
+}
+
 #[tokio::main]
 async fn main() {
+    // Initialize AUTH_CONFIG
+    init_auth_config();
+    
     // Initialize logger with debug level
     env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("debug"))
         .init();
@@ -780,6 +837,7 @@ async fn main() {
             update_email_config,
             send_test_email,
             email_config_page,
+            update_config,
         ])
         .register("/", catchers![unauthorized]);
 

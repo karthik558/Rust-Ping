@@ -47,16 +47,16 @@ async function updatePassword() {
     // --- Helper Functions for Status Messages ---
     function showSuccessMessage(message) {
         statusMessage.textContent = message;
-        statusMessage.classList.remove('error'); // Remove error class
+        statusMessage.classList.remove('error');
         statusMessage.classList.add('success');
-        statusMessage.classList.add('show');     // Show the message
+        statusMessage.classList.add('show');
     }
 
     function showErrorMessage(message) {
         statusMessage.textContent = message;
-        statusMessage.classList.remove('success'); // Remove success class
+        statusMessage.classList.remove('success');
         statusMessage.classList.add('error');
-        statusMessage.classList.add('show');     // Show the message
+        statusMessage.classList.add('show');
     }
 
     function hideStatusMessage() {
@@ -64,42 +64,65 @@ async function updatePassword() {
     }
     // --- End Helper Functions ---
 
-
     if (newPassword !== confirmPassword) {
-        showErrorMessage('Passwords do not match'); // Use helper function
+        showErrorMessage('Passwords do not match');
         return;
     }
 
     if (checkPasswordStrength(newPassword) < 3) {
-        showErrorMessage('Password is not strong enough'); // Use helper function
+        showErrorMessage('Password is not strong enough');
         return;
     }
 
     try {
         const hashedPassword = await hashPassword(newPassword);
+        const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+        
+        if (!currentUser.username) {
+            throw new Error('No user logged in');
+        }
 
-        // Update config.js with new hash
-        const response = await fetch('/update-password', {
+        // Get users from localStorage or initialize from AUTH_CONFIG
+        let users = JSON.parse(localStorage.getItem('users') || '[]');
+        if (users.length === 0 && typeof AUTH_CONFIG !== 'undefined') {
+            users = AUTH_CONFIG.users || [];
+            localStorage.setItem('users', JSON.stringify(users));
+        }
+        
+        // Update the user's password
+        const userIndex = users.findIndex(u => u.username === currentUser.username);
+        if (userIndex === -1) {
+            throw new Error('User not found');
+        }
+        
+        users[userIndex].passwordHash = hashedPassword;
+
+        // Update localStorage
+        localStorage.setItem('users', JSON.stringify(users));
+
+        // Update config.js
+        const configContent = `const AUTH_CONFIG = ${JSON.stringify({ users }, null, 4)};`;
+        const response = await fetch('/update-config', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ hash: hashedPassword })
+            body: JSON.stringify({
+                content: configContent
+            })
         });
 
-        if (response.ok) {
-            showSuccessMessage('Password updated successfully'); // Use helper function
-            setTimeout(() => {
-                window.location.href = '/static/index.html';  //or '/'; //redirect to home page
-            }, 2000);
-        } else {
-            // Get more detailed error information from the server if possible
-            const errorData = await response.json().catch(() => null); // Try to parse as JSON
-            const errorMessage = errorData?.message || 'Failed to update password'; // Use server message or default
-            showErrorMessage(errorMessage);
+        if (!response.ok) {
+            throw new Error('Failed to update config file');
         }
+
+        showSuccessMessage('Password updated successfully');
+        setTimeout(() => {
+            window.location.href = '/static/index.html';
+        }, 2000);
     } catch (error) {
-        showErrorMessage('Failed to update password: ' + error.message); // Use helper function
+        console.error('Error updating password:', error);
+        showErrorMessage('Failed to update password: ' + error.message);
     }
 }
 
